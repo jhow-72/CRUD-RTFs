@@ -15,7 +15,7 @@ def add():
 def edit():
     return render_template("editar.html")
 
-@app.route("/login", methods=['POST','GET'])
+@app.route("/login/", methods=['POST','GET'])
 def login():
     return render_template("login.html")
 
