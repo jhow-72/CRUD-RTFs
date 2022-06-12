@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}View All Users{% endblock %}
+{% block content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+            <p>{{msg}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <table class="table">
+                    <thead>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Ações</th>
+                    </thead>
+                    <tbody>
+                        {% for item in values %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.email }}</td>
+                                <td>
+                                    <a href="#">Editar</a>
+                                    <a href="{{url_for('delete_user', id=item.id)}}">Deletar</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

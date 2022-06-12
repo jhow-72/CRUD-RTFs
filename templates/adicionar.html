@@ -1,10 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Novo Cenário{% endblock %}
 {% block content %}
-<form action="" method="POST">
-    <input type="text" name="nome" id="nome" placeholder="Nome do RTF">
-    <input type="text" name="descricao" id="descricao" placeholder="Descrição">
-    <input type="number" name="qtd_cenarios" id="qtd_cenarios" value="5" placeholder="QTD Cenários">
-    <button type="submit"></button>
+<h1>Adicionar novo RTF</h1>
+<form action="{{url_for('addRTF')}}" method="POST">
+    <div style="text-align:center">
+        <label for="name">Nome do RTF</label>
+        <input type="text" name="name" id="name">
+
+        <label for="descricao">Descrição</label>
+        <input type="text" name="descricao" id="descricao">
+
+        <label for="qtd_pages">QTD Páginas</label>
+        <input type="text" name="qtd_pages" id="qtd_pages" value=2>
+    </div>
+    <br>
+    <div>
+        <button type="submit" class="btn btn-block btn-success">Adicionar</button>
+    </div>
 </form>
 {% endblock %}

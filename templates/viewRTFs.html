@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}View All RTFs{% endblock %}
+{% block content%}
+<div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <a href="{{url_for('addRTF')}}">Adicionar Novo</a>
+            </div>
+            <div class="col-xs-12">
+                <table class="table">
+                    <thead>
+                        <th>Nome</th>
+                        <th>Descricao</th>
+                        <th>quantidade de Páginas</th>
+                        <th>Ações</th>
+                    </thead>
+                    <tbody>
+                        {% for item in values %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.descricao }}</td>
+                                <td>{{ item.qtd_pages }}</td>
+                                <td>
+                                    <a href="#">Acessar</a>
+                                    <a href="{{url_for('edit_rtf', id=item.id)}}">Editar</a>
+                                    <a href="{{url_for('delete_rtf', id=item.id)}}">Deletar</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
