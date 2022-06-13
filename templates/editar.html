@@ -1,16 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Editar Cenário</title>
-</head>
-<body>
-    <form action="" method="post">
-        <textarea name="cenario" id="cenario" cols="30" rows="10" placeholder="Cenário"></textarea>
-        <textarea name="resultado_esperado" id="resultado_esperado" cols="30" rows="10" placeholder="Resultado Esperado"></textarea>
-        <textarea name="massa" id="massa" cols="30" rows="10" placeholder="Massa de Teste"></textarea>
-        <textarea name="Log" id="Log" cols="30" rows="10" placeholder="Log"></textarea>
-        <button type="submit">Confirmar</button>
-    </form>
-</body>
-</html>
+
+{% extends "base.html" %}
+{% block title %}Editar Cenário{% endblock %}
+{% block content %}
+<h1>Editar RTF</h1>
+<h2>{{ rtf.name }}</h2>
+<form action="{{url_for('edit_rtf', id=rtf.id)}}" method="POST">
+    <div style="text-align:center">
+        <label for="name">Nome do RTF</label>
+        <input type="text" name="name" id="name" value="{{ rtf.name }}">
+
+        <label for="descricao">Descrição</label>
+        <input type="text" name="descricao" id="descricao" value="{{ rtf.descricao }}">
+
+    </div>
+    <br>
+    <div>
+        <button type="submit" class="btn btn-block btn-success">Editar</button>
+    </div>
+</form>
+{% endblock %}
+
+
+<!--<form action="" method="post">-->
+<!--    <textarea name="cenario" id="cenario" cols="30" rows="10" placeholder="Cenário"></textarea>-->
+<!--    <textarea name="resultado_esperado" id="resultado_esperado" cols="30" rows="10" placeholder="Resultado Esperado"></textarea>-->
+<!--    <textarea name="massa" id="massa" cols="30" rows="10" placeholder="Massa de Teste"></textarea>-->
+<!--    <textarea name="Log" id="Log" cols="30" rows="10" placeholder="Log"></textarea>-->
+<!--    <button type="submit">Confirmar</button>-->
+<!--</form>-->

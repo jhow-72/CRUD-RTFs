@@ -38,8 +38,8 @@ class RTFs(db.Model):
 def index():
     return render_template("index.html")
 
-@app.route("/addRTF/", methods=["GET", "POST"])
-def addRTF():
+@app.route("/add_rtf/", methods=["GET", "POST"])
+def add_rtf():
     if request.method == "POST":
         rtf = RTFs(request.form["name"], request.form["descricao"], request.form["qtd_pages"])
         db.session.add(rtf)
@@ -48,9 +48,18 @@ def addRTF():
     else:
         return render_template("adicionar.html")
 
-@app.route("/edit_rtf/")
-def edit_rtf():
-    return render_template("editar.html")
+@app.route("/edit_rtf/<int:id>", methods=["GET", "POST"])
+def edit_rtf(id):
+    rtf = RTFs.query.get(id)
+
+    if request.method == "POST":
+        rtf.name = request.form["name"]
+        rtf.descricao = request.form["descricao"]
+        db.session.commit()
+
+        return redirect(url_for('viewRTF'))
+
+    return render_template("editar.html", rtf=rtf)
 
 @app.route("/login/", methods=['POST','GET'])
 def login():
