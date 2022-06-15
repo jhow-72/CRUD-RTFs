@@ -26,11 +26,30 @@ class RTFs(db.Model):
     name = db.Column(db.String(100))
     descricao = db.Column(db.String(500))
     qtd_pages = db.Column(db.Integer)
+    cenarios = db.relationship('Cenarios', backref='rtfs')
 
     def __init__(self, name, descricao, qtd_pages):
         self.name = name
         self.descricao = descricao
         self.qtd_pages = qtd_pages
+
+class Cenarios(db.Model):
+    id_rtf = db.Column(db.Integer, db.ForeignKey('rtfs.id'))
+    pagina = db.Column(db.Integer, primary_key=True)
+    linha = db.Column(db.Integer, primary_key=True)
+    cenario = db.Column(db.String(250))
+    resultado_esperado = db.Column(db.String(250))
+    status = db.Column(db.Integer)
+    massa_teste = db.Column(db.String(250))
+    log_execucao = db.Column(db.String(10000))
+
+    def __init__(self, id_rtf, pagina, linha, cenario, resultado_esperado):
+        id_rtf = self.id_rtf
+        pagina = self.pagina
+        linha = self.linha
+        cenario = self.cenario
+        resultado_esperado = self.resultado_esperado
+
 
 ##########################
 
@@ -44,6 +63,7 @@ def add_rtf():
         rtf = RTFs(request.form["name"], request.form["descricao"], request.form["qtd_pages"])
         db.session.add(rtf)
         db.session.commit()
+        flash('RTF adicionado com sucesso!')
         return redirect(url_for("viewRTF"))
     else:
         return render_template("adicionar.html")
