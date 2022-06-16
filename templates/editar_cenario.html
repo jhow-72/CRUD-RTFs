@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Editar Cenário{% endblock %}
+{% block content %}
+<h1>Editar Cenário</h1>
+<h2>{{ cenario.cenario }}</h2>
+<form action="{{url_for('edit_cenario', id_rtf=cenario.id_rtf, pagina=cenario.pagina, linha=cenario.linha)}}" method="POST">
+    <div style="text-align:center">
+        <label for="cenario">Cenário</label>
+        <input type="text" name="cenario" id="cenario" value="{{ cenario.cenario }}">
+
+        <label for="resultado_esperado">Resultado Esperado</label>
+        <input type="text" name="resultado_esperado" id="resultado_esperado" value="{{ cenario.resultado_esperado }}">
+
+        <label for="status">Status</label>
+        <input type="text" name="status" id="status" value="{{ cenario.status }}">
+
+        <label for="massa_teste">Massa Teste</label>
+        <input type="text" name="massa_teste" id="massa_teste" value="{{ cenario.massa_teste }}">
+
+        <label for="log_execucao">Log Execução</label>
+        <input type="text" name="log_execucao" id="log_execucao" value="{{ cenario.log_execucao }}">
+    </div>
+    <br>
+    <div>
+        <button type="submit" class="btn btn-block btn-success">Editar</button>
+    </div>
+</form>
+{% endblock %}

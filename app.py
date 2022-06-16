@@ -22,7 +22,7 @@ class users(db.Model):
         self.email = email
 
 class RTFs(db.Model):
-    id = db.Column("id", db.Integer, primary_key=True)
+    id = db.Column("id", db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100))
     descricao = db.Column(db.String(500))
     qtd_pages = db.Column(db.Integer)
@@ -34,7 +34,7 @@ class RTFs(db.Model):
         self.qtd_pages = qtd_pages
 
 class Cenarios(db.Model):
-    id_rtf = db.Column(db.Integer, db.ForeignKey('rtfs.id'))
+    id_rtf = db.Column(db.Integer, db.ForeignKey('rt_fs.id'), primary_key=True)  # o db por alguma razão chamou RTFs de rt_fs
     pagina = db.Column(db.Integer, primary_key=True)
     linha = db.Column(db.Integer, primary_key=True)
     cenario = db.Column(db.String(250))
@@ -44,11 +44,11 @@ class Cenarios(db.Model):
     log_execucao = db.Column(db.String(10000))
 
     def __init__(self, id_rtf, pagina, linha, cenario, resultado_esperado):
-        id_rtf = self.id_rtf
-        pagina = self.pagina
-        linha = self.linha
-        cenario = self.cenario
-        resultado_esperado = self.resultado_esperado
+        self.id_rtf = id_rtf
+        self.pagina = pagina
+        self.linha = linha
+        self.cenario = cenario
+        self.resultado_esperado = resultado_esperado
 
 
 ##########################
@@ -80,6 +80,45 @@ def edit_rtf(id):
         return redirect(url_for('viewRTF'))
 
     return render_template("editar.html", rtf=rtf)
+
+@app.route("/add_cenario/<int:id_rtf>/<int:pagina>", methods=["GET", "POST"])
+def add_cenario(id_rtf, pagina):
+    # id_rtf_add = id_rtf
+    # pagina_add = pagina
+
+    # Precisa fazer uma query para buscar todas as linhas da pagina do rtfs.
+    # se o array for > 0, pegar a linha mais alta e somar 1
+    # se não, linha = 1 (primeiro RTF)
+    linha = 1
+    quantidade_linhas = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).count()
+    if quantidade_linhas > 0:
+        linha = quantidade_linhas+1
+
+    if request.method == "POST":
+        cenario = Cenarios(id_rtf, pagina, linha, request.form["cenario"], request.form["resultado_esperado"])
+        db.session.add(cenario)
+        db.session.commit()
+        flash('Cenário adicionado com sucesso!')
+        return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
+    else:
+        return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=pagina)
+
+@app.route("/edit_cenario/<int:id_rtf>/<int:pagina>/<int:linha>", methods=["GET", "POST"])
+def edit_cenario(id_rtf, pagina, linha):
+    cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
+
+    if request.method == "POST":
+        cenario.cenario = request.form["cenario"]
+        cenario.resultado_esperado = request.form["resultado_esperado"]
+        cenario.status = request.form["status"]
+        cenario.massa_teste = request.form["massa_teste"]
+        cenario.log_execucao = request.form["log_execucao"]
+        db.session.commit()
+
+        return redirect(url_for('viewCenarios', id_rtf=id_rtf, pagina=pagina))
+
+    return render_template("editar_cenario.html", cenario=cenario)
+
 
 @app.route("/login/", methods=['POST','GET'])
 def login():
@@ -144,6 +183,12 @@ def viewUsers():
 def viewRTF():
     rtfs = RTFs.query.all()
     return render_template("viewRTFs.html", values=rtfs)
+
+@app.route("/viewCenarios/<int:id_rtf>/<int:pagina>")
+def viewCenarios(id_rtf, pagina):
+    print(id_rtf, pagina)
+    cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina)
+    return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina)
 
 @app.route("/delete_user/<int:id>")
 def delete_user(id):
