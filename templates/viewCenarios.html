@@ -35,7 +35,7 @@
                                 <td>{{ item.log_execucao }}</td>
                                 <td>
                                     <a href="{{url_for('edit_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}">Editar</a>
-                                    <a href="#">Deletar</a>
+                                    <a href="{{url_for('delete_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}">Deletar</a>
                                 </td>
                             </tr>
                         {% endfor %}

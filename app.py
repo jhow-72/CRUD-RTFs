@@ -34,9 +34,10 @@ class RTFs(db.Model):
         self.qtd_pages = qtd_pages
 
 class Cenarios(db.Model):
-    id_rtf = db.Column(db.Integer, db.ForeignKey('rt_fs.id'), primary_key=True)  # o db por alguma razão chamou RTFs de rt_fs
-    pagina = db.Column(db.Integer, primary_key=True)
-    linha = db.Column(db.Integer, primary_key=True)
+    id_cenario = db.Column("id_cenario", db.Integer, primary_key=True, autoincrement=True)
+    id_rtf = db.Column(db.Integer, db.ForeignKey('rt_fs.id'))  # o db por alguma razão chamou RTFs de rt_fs
+    pagina = db.Column(db.Integer)
+    linha = db.Column(db.Integer)
     cenario = db.Column(db.String(250))
     resultado_esperado = db.Column(db.String(250))
     status = db.Column(db.Integer)
@@ -91,8 +92,9 @@ def add_cenario(id_rtf, pagina):
     # se não, linha = 1 (primeiro RTF)
     linha = 1
     quantidade_linhas = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).count()
+    maior_linha = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).order_by(Cenarios.linha.desc()).first()
     if quantidade_linhas > 0:
-        linha = quantidade_linhas+1
+        linha = maior_linha.linha+1
 
     if request.method == "POST":
         cenario = Cenarios(id_rtf, pagina, linha, request.form["cenario"], request.form["resultado_esperado"])
@@ -205,6 +207,14 @@ def delete_rtf(id):
     db.session.commit()
     flash('RTF removido com sucesso!')
     return redirect(url_for("viewRTF"))
+
+@app.route("/delete_cenario/<int:id_rtf>/<int:pagina>/<int:linha>")
+def delete_cenario(id_rtf, pagina, linha):
+    cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
+    db.session.delete(cenario)
+    db.session.commit()
+    flash('Cenário removido com sucesso!')
+    return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
 if __name__ == '__main__':
     db.create_all()  # cria o banco de dados caso ele ainda não exista
