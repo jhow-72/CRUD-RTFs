@@ -18,7 +18,7 @@
                     <thead>
                         <th>Nome</th>
                         <th>Descrição</th>
-                        <th>Páginas</th>
+                        <th>Data Atualização</th>
                         <th>Ações</th>
                     </thead>
                     <tbody>
@@ -26,7 +26,7 @@
                             <tr>
                                 <td>{{ item.name }}</td>
                                 <td>{{ item.descricao }}</td>
-                                <td>{{ item.qtd_pages }}</td>
+                                <td>{{ item.data_update }}</td>
                                 <td>
                                     <a href="{{url_for('viewCenarios', id_rtf=item.id, pagina=1)}}">Acessar</a>
                                     <a href="{{url_for('edit_rtf', id=item.id)}}">Editar</a>

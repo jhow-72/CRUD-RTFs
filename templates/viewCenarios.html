@@ -26,24 +26,52 @@
                     </thead>
                     <tbody>
                         {% for item in values %}
-                            <tr>
-                                <td>{{ item.linha }}</td>
-                                <td>{{ item.cenario }}</td>
-                                <td>{{ item.resultado_esperado }}</td>
-                                <td>{{ item.status }}</td>
-                                <td>{{ item.massa_teste }}</td>
-                                <td>{{ item.log_execucao }}</td>
-                                <td>
-                                    <a href="{{url_for('edit_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}">Editar</a>
-                                    <a href="{{url_for('delete_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}">Deletar</a>
-                                </td>
-                            </tr>
+                            <form action="{{url_for('edit_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}" method="POST">
+                                <tr>
+                                    <td>{{ item.linha }}</td>
+                                    <td><textarea name="cenario" id="cenario" cols="15" rows="5">{{ item.cenario }}</textarea></td>
+                                    <td><textarea name="resultado_esperado" id="resultado_esperado" cols="18" rows="5">{{ item.resultado_esperado }}</textarea></td>
+                                    <td><textarea name="status" id="status" cols="5" rows="5">{{ item.status }}</textarea></td>
+                                    <td><textarea name="massa_teste" id="massa_teste" cols="18" rows="5">{{ item.massa_teste }}</textarea></td>
+                                    <td><textarea name="log_execucao" id="log_execucao" cols="18" rows="5">{{ item.log_execucao }}</textarea></td>
+                                    <td>
+                                        <button type="submit" class="btn btn-block btn-success">Editar POST</button>
+                                        <button class="btn btn-block btn-danger"><a href="{{url_for('delete_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}">Deletar</a></button>
+                                    </td>
+                                </tr>
+                            </form>
                         {% endfor %}
                     </tbody>
                 </table>
-                <div>
-                    <p>Página: {{pagina}}</p>
-                </div>
+                <nav aria-label="...">
+                    <ul class="pagination">
+                        {% if pagina==1 %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{url_for('viewCenarios', id_rtf=id_rtf, pagina=pagina-1)}}">Anterior</a>
+                            </li>
+                        {% endif %}
+
+                        {% for page in range(qtd_pages) %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{url_for('viewCenarios', id_rtf=id_rtf, pagina=page+1)}}">{{ page+1 }}</a>
+                            </li>
+                        {% endfor %}
+
+                        {% if pagina==qtd_pages %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Próxima</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{url_for('viewCenarios', id_rtf=id_rtf, pagina=pagina+1)}}">Próxima</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>

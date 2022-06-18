@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Novo Cenário{% endblock %}
 {% block content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+            <p>{{msg}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 <h1>Adicionar novo Cenário</h1>
 <form action="{{url_for('add_cenario', id_rtf=id_rtf, pagina=pagina)}}" method="POST">
     <div style="text-align:center">

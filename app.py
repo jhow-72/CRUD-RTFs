@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from datetime import timedelta
+from datetime import timedelta, datetime
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -27,6 +27,8 @@ class RTFs(db.Model):
     descricao = db.Column(db.String(500))
     qtd_pages = db.Column(db.Integer)
     cenarios = db.relationship('Cenarios', backref='rtfs')
+    data_criacao = db.Column(db.Date, default=datetime.utcnow().date())
+    data_update = db.Column(db.Date, default=datetime.utcnow().date())
 
     def __init__(self, name, descricao, qtd_pages):
         self.name = name
@@ -54,6 +56,14 @@ class Cenarios(db.Model):
 
 ##########################
 
+def get_data():
+    d = datetime.datetime.utcnow().day
+    m = datetime.datetime.utcnow().month
+    y = datetime.datetime.utcnow().year
+    data = f'{d}/{m}/{y}'
+    return data
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -76,16 +86,14 @@ def edit_rtf(id):
     if request.method == "POST":
         rtf.name = request.form["name"]
         rtf.descricao = request.form["descricao"]
+        rtf.data_update = datetime.utcnow().date()
         db.session.commit()
-
         return redirect(url_for('viewRTF'))
 
     return render_template("editar.html", rtf=rtf)
 
 @app.route("/add_cenario/<int:id_rtf>/<int:pagina>", methods=["GET", "POST"])
 def add_cenario(id_rtf, pagina):
-    # id_rtf_add = id_rtf
-    # pagina_add = pagina
 
     # Precisa fazer uma query para buscar todas as linhas da pagina do rtfs.
     # se o array for > 0, pegar a linha mais alta e somar 1
@@ -100,6 +108,10 @@ def add_cenario(id_rtf, pagina):
         cenario = Cenarios(id_rtf, pagina, linha, request.form["cenario"], request.form["resultado_esperado"])
         db.session.add(cenario)
         db.session.commit()
+
+        cenario.rtfs.data_update = datetime.utcnow().date()
+        db.session.commit()
+
         flash('Cenário adicionado com sucesso!')
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
     else:
@@ -115,6 +127,7 @@ def edit_cenario(id_rtf, pagina, linha):
         cenario.status = request.form["status"]
         cenario.massa_teste = request.form["massa_teste"]
         cenario.log_execucao = request.form["log_execucao"]
+        cenario.rtfs.data_update = datetime.utcnow().date()
         db.session.commit()
 
         return redirect(url_for('viewCenarios', id_rtf=id_rtf, pagina=pagina))
@@ -122,7 +135,7 @@ def edit_cenario(id_rtf, pagina, linha):
     return render_template("editar_cenario.html", cenario=cenario)
 
 
-@app.route("/login/", methods=['POST','GET'])
+@app.route("/login/", methods=['POST', 'GET'])
 def login():
     if request.method == "POST":
         session.permanent = True  # habilita o tempo setado no inicio do arquivo
@@ -188,9 +201,16 @@ def viewRTF():
 
 @app.route("/viewCenarios/<int:id_rtf>/<int:pagina>")
 def viewCenarios(id_rtf, pagina):
-    print(id_rtf, pagina)
     cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina)
-    return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina)
+    cenario1 = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=1).first()
+
+    try:
+        qtd_pages = cenario1.rtfs.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
+        return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages)
+    except AttributeError:
+        # se tentar abrir um RTF vazio, vai pedir para criar um cenário
+        flash('RTF está sem nenhum cenário! Adicione o primeiro ;D')
+        return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=pagina)
 
 @app.route("/delete_user/<int:id>")
 def delete_user(id):
@@ -212,9 +232,17 @@ def delete_rtf(id):
 def delete_cenario(id_rtf, pagina, linha):
     cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
     db.session.delete(cenario)
-    db.session.commit()
-    flash('Cenário removido com sucesso!')
+    sucess = ajust_num_linhas(id_rtf, pagina)
+    if sucess:
+        db.session.commit()
+        flash('Cenário removido com sucesso!')
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
+
+def ajust_num_linhas(id_rtf, pagina):
+    cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).all()
+    for count, cenario in enumerate(cenarios):
+        cenario.linha = count+1
+    return True
 
 if __name__ == '__main__':
     db.create_all()  # cria o banco de dados caso ele ainda não exista
