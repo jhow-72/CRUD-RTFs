@@ -1,10 +1,15 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = "jhow"
 app.permanent_session_lifetime = timedelta(minutes=5)
+
+def get_data_formatada():
+    data = date.today()
+    data = data.strftime('%d/%m/%Y')
+    return data
 
 # section sobre o database
 
@@ -27,13 +32,19 @@ class RTFs(db.Model):
     descricao = db.Column(db.String(500))
     qtd_pages = db.Column(db.Integer)
     cenarios = db.relationship('Cenarios', backref='rtfs')
+
     data_criacao = db.Column(db.Date, default=datetime.utcnow().date())
     data_update = db.Column(db.Date, default=datetime.utcnow().date())
+    data_criacao_formatada = db.Column(db.String(10))
+    data_update_formatada = db.Column(db.String(10))
 
     def __init__(self, name, descricao, qtd_pages):
         self.name = name
         self.descricao = descricao
         self.qtd_pages = qtd_pages
+        data = get_data_formatada()
+        self.data_criacao_formatada = data
+        self.data_update_formatada = data
 
 class Cenarios(db.Model):
     id_cenario = db.Column("id_cenario", db.Integer, primary_key=True, autoincrement=True)
@@ -55,14 +66,6 @@ class Cenarios(db.Model):
 
 
 ##########################
-
-def get_data():
-    d = datetime.datetime.utcnow().day
-    m = datetime.datetime.utcnow().month
-    y = datetime.datetime.utcnow().year
-    data = f'{d}/{m}/{y}'
-    return data
-
 
 @app.route("/")
 def index():
@@ -86,7 +89,10 @@ def edit_rtf(id):
     if request.method == "POST":
         rtf.name = request.form["name"]
         rtf.descricao = request.form["descricao"]
+
         rtf.data_update = datetime.utcnow().date()
+        rtf.data_update_formatada = get_data_formatada()
+
         db.session.commit()
         return redirect(url_for('viewRTF'))
 
@@ -110,6 +116,7 @@ def add_cenario(id_rtf, pagina):
         db.session.commit()
 
         cenario.rtfs.data_update = datetime.utcnow().date()
+        cenario.rtfs.data_update_formatada = get_data_formatada()
         db.session.commit()
 
         flash('Cenário adicionado com sucesso!')
@@ -127,7 +134,10 @@ def edit_cenario(id_rtf, pagina, linha):
         cenario.status = request.form["status"]
         cenario.massa_teste = request.form["massa_teste"]
         cenario.log_execucao = request.form["log_execucao"]
+
         cenario.rtfs.data_update = datetime.utcnow().date()
+        cenario.rtfs.data_update_formatada = get_data_formatada()
+
         db.session.commit()
 
         return redirect(url_for('viewCenarios', id_rtf=id_rtf, pagina=pagina))
