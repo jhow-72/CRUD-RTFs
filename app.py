@@ -276,34 +276,70 @@ def add_pagina(id_rtf, pagina_atual):
     if rtf.qtd_pages > 1:
         rtf.qtd_pages += 1
         # começa organizando da pagina nova, pois a ideia é deixar a atual no mesmo estado
-        organiza_paginas(id_rtf, pagina_nova)
+        organiza_paginas(id_rtf, pagina_nova, "add")
     else:
         rtf.qtd_pages += 1
     db.session.commit()
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina_nova))
 
-def organiza_paginas(id_rtf, pagina_atual):
+def organiza_paginas(id_rtf, pagina_atual, modo):
     cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina_atual).all()
 
-    # condicao de parada
-    if not cenarios:  # verifica se a lista de cenários está vazia
-        return
+    if modo.__eq__("add"):
+        # condicao de parada
+        if not cenarios:  # verifica se a lista de cenários está vazia
+            return
 
-    proxima_pagina = pagina_atual+1
-    organiza_paginas(id_rtf, proxima_pagina)
+        proxima_pagina = pagina_atual+1
+        organiza_paginas(id_rtf, proxima_pagina, "add")
 
-    for cenario in cenarios:
-        cenario.pagina = proxima_pagina
+        # passa os cenarios da pagina atual para a proxima pagina q está confirmadamente vazia
+        for cenario in cenarios:
+            cenario.pagina = proxima_pagina
+
+    if modo.__eq__("del"):
+        rtf = RTFs.query.get(id_rtf)
+        # condicao de parada
+        if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas a partir da que apaguei até a ultima
+            return
+
+        proxima_pagina = pagina_atual + 1
+        for cenario in cenarios:
+            cenario.pagina -= 1
+
+        organiza_paginas(id_rtf, proxima_pagina, "del")
+
     return
 
+# deletar os cenarios da pagina
+# deletar a pagina
+# pegar todas as paginas que vinham depois da pagina deletada
+# subtrair o numero da pagina para pagina -= 1
 @app.route("/delete_pagina/<int:id_rtf>/<int:pagina>/")
 def delete_pagina(id_rtf, pagina):
-    cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
-    db.session.delete(cenario)
-    sucess = ajust_num_linhas(id_rtf, pagina)
-    if sucess:
-        db.session.commit()
-        flash('Cenário removido com sucesso!')
+    rtf = RTFs.query.get(id_rtf)
+    if rtf.qtd_pages == 1:
+        flash('Eae maluko, ta tirano? ta querendo arrumar problema pro c?')
+        return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
+    else:
+        delete_lista_cenarios(id_rtf, pagina)
+        organiza_paginas(id_rtf, pagina, "del")
+        rtf.qtd_pages -= 1
+
+    db.session.commit()
+
+    flash('A pagina foi removida com sucesso')
+    if pagina == rtf.qtd_pages:  # aka pagina é a ultima pagina
+        return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina-1))
+
+    return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
+
+def delete_lista_cenarios(id_rtf, pagina):
+    cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).all()
+    for cenario in cenarios:
+        db.session.delete(cenario)
+    db.session.commit()
+    flash('Cenário removido com sucesso!')
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
 if __name__ == '__main__':
