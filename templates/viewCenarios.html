@@ -11,7 +11,9 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12">
-                <a href="{{url_for('add_cenario', id_rtf=id_rtf, pagina=pagina)}}">Adicionar Nova Linha</a>
+                <a href="{{url_for('add_cenario', id_rtf=id_rtf, pagina=pagina)}}">Nova Linha</a>
+                |||
+                <a href="{{url_for('add_pagina', id_rtf=id_rtf, pagina_atual=pagina)}}">Nova Página</a>
             </div>
             <div class="col-xs-12">
                 <table class="table">

@@ -38,10 +38,10 @@ class RTFs(db.Model):
     data_criacao_formatada = db.Column(db.String(10))
     data_update_formatada = db.Column(db.String(10))
 
-    def __init__(self, name, descricao, qtd_pages):
+    def __init__(self, name, descricao):
         self.name = name
         self.descricao = descricao
-        self.qtd_pages = qtd_pages
+        self.qtd_pages = 1
         data = get_data_formatada()
         self.data_criacao_formatada = data
         self.data_update_formatada = data
@@ -74,7 +74,7 @@ def index():
 @app.route("/add_rtf/", methods=["GET", "POST"])
 def add_rtf():
     if request.method == "POST":
-        rtf = RTFs(request.form["name"], request.form["descricao"], request.form["qtd_pages"])
+        rtf = RTFs(request.form["name"], request.form["descricao"])
         db.session.add(rtf)
         db.session.commit()
         flash('RTF adicionado com sucesso!')
@@ -212,15 +212,21 @@ def viewRTF():
 @app.route("/viewCenarios/<int:id_rtf>/<int:pagina>")
 def viewCenarios(id_rtf, pagina):
     cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina)
-    cenario1 = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=1).first()
+    cenario1 = Cenarios.query.filter_by(id_rtf=id_rtf).first()
 
     try:
         qtd_pages = cenario1.rtfs.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
         return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages)
     except AttributeError:
-        # se tentar abrir um RTF vazio, vai pedir para criar um cenário
+        # se tentar abrir um RTF vazio, vai pedir para criar um cenário na pagina 1
+
+        # adicionamente, irá forcar o qtd_pages = 1
+        rtf = RTFs.query.get(id_rtf)
+        rtf.qtd_pages = 1
+        db.session.commit()
+
         flash('RTF está sem nenhum cenário! Adicione o primeiro ;D')
-        return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=pagina)
+        return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=1)
 
 @app.route("/delete_user/<int:id>")
 def delete_user(id):
@@ -253,6 +259,52 @@ def ajust_num_linhas(id_rtf, pagina):
     for count, cenario in enumerate(cenarios):
         cenario.linha = count+1
     return True
+
+# na criação da pagina acontece algumas coisas importantes
+# primeiro  adicionamos +1 na qtd paginas do RTF
+# depois a diversão começa
+# pagina_nova é criada como pagina_atual+1
+# pagina_movida é criada como pagina_nova+1
+# ou seja, criamos uma pagina nova que ira entrar no lugar da que já existe
+# vamos mudar todos os cenários q estavam na pagina_movida para o seu novo número (já é a própria pagina_movida)
+# 1 problema: E se tiver mais de uma pagina dps da pagina nova? vamos perder dados!
+# aí vamos poder brincar com recursão, vamos criar uma nova funcao para dar um help nisso
+@app.route("/add_pagina/<int:id_rtf>/<int:pagina_atual>/")
+def add_pagina(id_rtf, pagina_atual):
+    rtf = RTFs.query.get(id_rtf)
+    pagina_nova = pagina_atual + 1
+    if rtf.qtd_pages > 1:
+        rtf.qtd_pages += 1
+        # começa organizando da pagina nova, pois a ideia é deixar a atual no mesmo estado
+        organiza_paginas(id_rtf, pagina_nova)
+    else:
+        rtf.qtd_pages += 1
+    db.session.commit()
+    return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina_nova))
+
+def organiza_paginas(id_rtf, pagina_atual):
+    cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina_atual).all()
+
+    # condicao de parada
+    if not cenarios:  # verifica se a lista de cenários está vazia
+        return
+
+    proxima_pagina = pagina_atual+1
+    organiza_paginas(id_rtf, proxima_pagina)
+
+    for cenario in cenarios:
+        cenario.pagina = proxima_pagina
+    return
+
+@app.route("/delete_pagina/<int:id_rtf>/<int:pagina>/")
+def delete_pagina(id_rtf, pagina):
+    cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
+    db.session.delete(cenario)
+    sucess = ajust_num_linhas(id_rtf, pagina)
+    if sucess:
+        db.session.commit()
+        flash('Cenário removido com sucesso!')
+    return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
 if __name__ == '__main__':
     db.create_all()  # cria o banco de dados caso ele ainda não exista
