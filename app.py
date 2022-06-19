@@ -329,9 +329,11 @@ def delete_pagina(id_rtf, pagina):
     db.session.commit()
 
     flash('A pagina foi removida com sucesso')
-    if pagina == rtf.qtd_pages:  # aka pagina é a ultima pagina
+    ultima_pagina = rtf.qtd_pages+1  # pagina excluida era a ultima pagina do rtf
+    if pagina == ultima_pagina:
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina-1))
 
+    # se não for a ultima pagina, ele permanece na mesma url só q com os dados da pagina q estava na frente
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
 def delete_lista_cenarios(id_rtf, pagina):
@@ -339,7 +341,6 @@ def delete_lista_cenarios(id_rtf, pagina):
     for cenario in cenarios:
         db.session.delete(cenario)
     db.session.commit()
-    flash('Cenário removido com sucesso!')
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
 if __name__ == '__main__':
