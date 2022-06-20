@@ -230,25 +230,23 @@ def viewRTF():
 @app.route("/viewCenarios/<int:id_rtf>/<int:pagina>")
 def viewCenarios(id_rtf, pagina):
     cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina)
-    cenario1 = Cenarios.query.filter_by(id_rtf=id_rtf).first()
-
+    rtf = RTFs.query.get(id_rtf)
+    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
 
     try:
-        qtd_pages = cenario1.rtfs.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
-        nome_pagina = cenario1.pagina_class.nome
+        qtd_pages = rtf.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
+        nome_pagina = pagina_obj.nome
         return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
     except AttributeError:
         # se tentar abrir um RTF vazio, vai pedir para criar um cenário na pagina 1
 
         # adicionamente, irá forcar o qtd_pages = 1
-        rtf = RTFs.query.get(id_rtf)
         rtf.qtd_pages = 1
 
         # e criará a pagina 1 se ela não existir (buscar pagina 1 do rtf e verificar se ela tem nome ou n)
-        pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
-        if pagina is None or pagina.nome is None:
-            pagina = Pagina(id_rtf, 1, f"Pagina {1}")
-            db.session.add(pagina)
+        if pagina_obj is None or pagina_obj.nome is None:
+            pagina_obj = Pagina(id_rtf, 1, f"Pagina {1}")
+            db.session.add(pagina_obj)
 
         db.session.commit()
 
