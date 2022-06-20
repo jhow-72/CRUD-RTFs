@@ -32,6 +32,7 @@ class RTFs(db.Model):
     descricao = db.Column(db.String(500))
     qtd_pages = db.Column(db.Integer)
     cenarios = db.relationship('Cenarios', backref='rtfs')
+    paginas = db.relationship('Pagina', backref='rtfsP')
 
     data_criacao = db.Column(db.Date, default=datetime.utcnow().date())
     data_update = db.Column(db.Date, default=datetime.utcnow().date())
@@ -46,9 +47,23 @@ class RTFs(db.Model):
         self.data_criacao_formatada = data
         self.data_update_formatada = data
 
+
+class Pagina(db.Model):
+    id_pagina = db.Column("id_pagina", db.Integer, primary_key=True, autoincrement=True)
+    id_rtf = db.Column(db.Integer, db.ForeignKey('rt_fs.id'))  # o db por alguma razão chamou RTFs de rt_fs
+    numero = db.Column(db.Integer)
+    nome = db.Column(db.String(30))
+    cenarios = db.relationship('Cenarios', backref='pagina_class')
+
+    def __init__(self, id_rtf, numero, nome):
+        self.id_rtf = id_rtf
+        self.numero = numero
+        self.nome = nome
+
 class Cenarios(db.Model):
     id_cenario = db.Column("id_cenario", db.Integer, primary_key=True, autoincrement=True)
     id_rtf = db.Column(db.Integer, db.ForeignKey('rt_fs.id'))  # o db por alguma razão chamou RTFs de rt_fs
+    id_pagina = db.Column(db.Integer, db.ForeignKey('pagina.id_pagina'))
     pagina = db.Column(db.Integer)
     linha = db.Column(db.Integer)
     cenario = db.Column(db.String(250))
@@ -57,8 +72,9 @@ class Cenarios(db.Model):
     massa_teste = db.Column(db.String(250))
     log_execucao = db.Column(db.String(10000))
 
-    def __init__(self, id_rtf, pagina, linha, cenario, resultado_esperado):
+    def __init__(self, id_rtf, id_pagina, pagina, linha, cenario, resultado_esperado):
         self.id_rtf = id_rtf
+        self.id_pagina = id_pagina
         self.pagina = pagina
         self.linha = linha
         self.cenario = cenario
@@ -100,6 +116,8 @@ def edit_rtf(id):
 
 @app.route("/add_cenario/<int:id_rtf>/<int:pagina>", methods=["GET", "POST"])
 def add_cenario(id_rtf, pagina):
+    id_pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+    id_pagina = id_pagina.id_pagina
 
     # Precisa fazer uma query para buscar todas as linhas da pagina do rtfs.
     # se o array for > 0, pegar a linha mais alta e somar 1
@@ -111,7 +129,7 @@ def add_cenario(id_rtf, pagina):
         linha = maior_linha.linha+1
 
     if request.method == "POST":
-        cenario = Cenarios(id_rtf, pagina, linha, request.form["cenario"], request.form["resultado_esperado"])
+        cenario = Cenarios(id_rtf, id_pagina, pagina, linha, request.form["cenario"], request.form["resultado_esperado"])
         db.session.add(cenario)
         db.session.commit()
 
@@ -214,15 +232,24 @@ def viewCenarios(id_rtf, pagina):
     cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina)
     cenario1 = Cenarios.query.filter_by(id_rtf=id_rtf).first()
 
+
     try:
         qtd_pages = cenario1.rtfs.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
-        return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages)
+        nome_pagina = cenario1.pagina_class.nome
+        return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
     except AttributeError:
         # se tentar abrir um RTF vazio, vai pedir para criar um cenário na pagina 1
 
         # adicionamente, irá forcar o qtd_pages = 1
         rtf = RTFs.query.get(id_rtf)
         rtf.qtd_pages = 1
+
+        # e criará a pagina 1 se ela não existir (buscar pagina 1 do rtf e verificar se ela tem nome ou n)
+        pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+        if pagina is None or pagina.nome is None:
+            pagina = Pagina(id_rtf, 1, f"Pagina {1}")
+            db.session.add(pagina)
+
         db.session.commit()
 
         flash('RTF está sem nenhum cenário! Adicione o primeiro ;D')
@@ -273,6 +300,8 @@ def ajust_num_linhas(id_rtf, pagina):
 def add_pagina(id_rtf, pagina_atual):
     rtf = RTFs.query.get(id_rtf)
     pagina_nova = pagina_atual + 1
+    pagina = Pagina(id_rtf, pagina_nova, f"Pagina {pagina_nova}")
+    db.session.add(pagina)
     if rtf.qtd_pages > 1:
         rtf.qtd_pages += 1
         # começa organizando da pagina nova, pois a ideia é deixar a atual no mesmo estado
@@ -325,6 +354,8 @@ def delete_pagina(id_rtf, pagina):
         delete_lista_cenarios(id_rtf, pagina)
         organiza_paginas(id_rtf, pagina, "del")
         rtf.qtd_pages -= 1
+        pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+        db.session.delete(pagina)
 
     db.session.commit()
 
