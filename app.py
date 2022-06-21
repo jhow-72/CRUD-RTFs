@@ -311,6 +311,7 @@ def add_pagina(id_rtf, pagina_atual):
 
 def organiza_paginas(id_rtf, pagina_atual, modo):
     cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina_atual).all()
+    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina_atual).first()
 
     if modo.__eq__("add"):
         # condicao de parada
@@ -330,10 +331,11 @@ def organiza_paginas(id_rtf, pagina_atual, modo):
         if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas a partir da que apaguei até a ultima
             return
 
-        proxima_pagina = pagina_atual + 1
         for cenario in cenarios:
             cenario.pagina -= 1
 
+        pagina_obj.numero -= 1
+        proxima_pagina = pagina_atual + 1
         organiza_paginas(id_rtf, proxima_pagina, "del")
 
     return
@@ -345,6 +347,10 @@ def organiza_paginas(id_rtf, pagina_atual, modo):
 @app.route("/delete_pagina/<int:id_rtf>/<int:pagina>/")
 def delete_pagina(id_rtf, pagina):
     rtf = RTFs.query.get(id_rtf)
+    print(f"id_rtf: {id_rtf}; pagina: {pagina}")
+    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+    print(pagina_obj)
+
     if rtf.qtd_pages == 1:
         flash('Eae maluko, ta tirano? ta querendo arrumar problema pro c?')
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
@@ -352,8 +358,7 @@ def delete_pagina(id_rtf, pagina):
         delete_lista_cenarios(id_rtf, pagina)
         organiza_paginas(id_rtf, pagina, "del")
         rtf.qtd_pages -= 1
-        pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
-        db.session.delete(pagina)
+        db.session.delete(pagina_obj)
 
     db.session.commit()
 
