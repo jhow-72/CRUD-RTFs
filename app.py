@@ -387,6 +387,19 @@ def delete_lista_cenarios(id_rtf, pagina):
     db.session.commit()
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
+@app.route("/editar_nome_pagina/<int:id_rtf>/<int:pagina>/", methods=["POST","GET"])
+def editar_nome_pagina(id_rtf, pagina):
+    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+
+    if request.method == "POST":
+        novo_nome = request.form["novo_nome"]
+        pagina_obj.nome = novo_nome
+        db.session.commit()
+        flash("Nome alterado com Sucesso!")
+        return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
+
+    return render_template("editar_nome_pagina.html", id_rtf=id_rtf, pagina=pagina, nome=pagina_obj.nome)
+
 if __name__ == '__main__':
     db.create_all()  # cria o banco de dados caso ele ainda não exista
     app.run(debug=True)

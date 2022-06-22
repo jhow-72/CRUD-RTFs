@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Editar Nome da Pagina{% endblock %}
+{% block content%}
+    <form action="{{ url_for('editar_nome_pagina', id_rtf=id_rtf, pagina=pagina) }}" method="POST">
+        <tr>
+            <td><input name="novo_nome" id="novo_nome" value="{{ nome }}"></input></td>
+            <td><button type="submit" class="btn btn-success">Mudar Nome</button></td>
+        </tr>
+    </form>
+{% endblock %}
