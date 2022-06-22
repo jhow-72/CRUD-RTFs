@@ -312,10 +312,11 @@ def add_pagina(id_rtf, pagina_atual):
 def organiza_paginas(id_rtf, pagina_atual, modo):
     cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina_atual).all()
     pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina_atual).first()
+    rtf = RTFs.query.get(id_rtf)
 
     if modo.__eq__("add"):
         # condicao de parada
-        if not cenarios:  # verifica se a lista de cenários está vazia
+        if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas
             return
 
         proxima_pagina = pagina_atual+1
@@ -325,8 +326,17 @@ def organiza_paginas(id_rtf, pagina_atual, modo):
         for cenario in cenarios:
             cenario.pagina = proxima_pagina
 
+        # quando chegar aqui pela primeira vez o rtf já tem pagina_atual == qtd_paginas
+        # porém o add no DB ainda n foi commitado
+        # portanto pagina_obj = None quando pagina_atual == rtf.qtd_pages
+        # por isso só preciso até o ultimo numero antes
+        # olhar funcao "add_pagina"... pagina_nova já é o numero correto
+        # se pagina_nova = 2, mesmo q qtd_pages seja 7, não vai afetar aqui... espero que eu entenda isso no futuro...
+        # mas agr faz sentido...
+        if pagina_atual < rtf.qtd_pages:
+            pagina_obj.numero += 1
+
     if modo.__eq__("del"):
-        rtf = RTFs.query.get(id_rtf)
         # condicao de parada
         if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas a partir da que apaguei até a ultima
             return
