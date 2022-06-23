@@ -142,6 +142,32 @@ def add_cenario(id_rtf, pagina):
     else:
         return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=pagina)
 
+
+@app.route("/new_line/<int:id_rtf>/<int:pagina>", methods=["GET", "POST"])
+def new_line(id_rtf, pagina):
+    id_pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+    id_pagina = id_pagina.id_pagina
+
+    # Precisa fazer uma query para buscar todas as linhas da pagina do rtfs.
+    # se o array for > 0, pegar a linha mais alta e somar 1
+    # se não, linha = 1 (primeiro RTF)
+    linha = 1
+    quantidade_linhas = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).count()
+    maior_linha = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).order_by(Cenarios.linha.desc()).first()
+    if quantidade_linhas > 0:
+        linha = maior_linha.linha+1
+
+    cenario = Cenarios(id_rtf, id_pagina, pagina, linha, "TBD", "TBD")
+    db.session.add(cenario)
+    db.session.commit()
+
+    cenario.rtfs.data_update = datetime.utcnow().date()
+    cenario.rtfs.data_update_formatada = get_data_formatada()
+    db.session.commit()
+
+    flash("Linha Adicionada...")
+    return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
+
 @app.route("/edit_cenario/<int:id_rtf>/<int:pagina>/<int:linha>", methods=["GET", "POST"])
 def edit_cenario(id_rtf, pagina, linha):
     cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
