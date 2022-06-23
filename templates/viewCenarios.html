@@ -9,8 +9,7 @@
         {% endif %}
     {% endwith %}
     <div>
-        <h2>{{nome_pagina}}</h2>
-        <button class="btnr"><a href="{{ url_for('editar_nome_pagina', id_rtf=id_rtf, pagina=pagina) }}">Editar Nome</a></button>
+        <h2 contentEditable="true" id="nome_pagina">{{nome_pagina}}<a href="{{ url_for('editar_nome_pagina', id_rtf=id_rtf, pagina=pagina) }}"><img width="20px" src="{{url_for('static', filename='images/edit_pen')}}" /></a></h2>
     </div>
     <div class="container">
         <div class="row">
@@ -43,8 +42,8 @@
                                     <td><textarea name="massa_teste" id="massa_teste" cols="18" rows="5">{{ item.massa_teste }}</textarea></td>
                                     <td><textarea name="log_execucao" id="log_execucao" cols="18" rows="5">{{ item.log_execucao }}</textarea></td>
                                     <td>
-                                        <button type="submit" class="btn btn-block btn-success">Editar POST</button>
-                                        <button class="btn btn-block btn-danger"><a href="{{url_for('delete_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}">Deletar</a></button>
+                                        <button type="submit" class="btn btn-block btn-success" style="font-weight:700">Editar</button>
+                                        <button class="btn btn-block btn-danger"><a style="color: white; text-decoration:none !important; font-weight:700" href="{{url_for('delete_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}">Deletar</a></button>
                                     </td>
                                 </tr>
                             </form>
