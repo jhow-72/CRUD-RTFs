@@ -9,14 +9,16 @@
         {% endif %}
     {% endwith %}
     <div>
-        <h2 id="nome_pagina">{{nome_pagina}} <a href="{{ url_for('editar_nome_pagina', id_rtf=id_rtf, pagina=pagina) }}"><img width="20px" src="{{url_for('static', filename='images/edit_pen')}}" /></a></h2>
+        <h2 id="nome_pagina">{{nome_pagina}} <a href="{{ url_for('editar_nome_pagina', id_rtf=id_rtf, pagina=pagina) }}"><i style="font-size: 20px" class="fa-solid fa-pen-to-square"></i></h2>
     </div>
+    <br>
+    <div class="col-xs-12">
+        <a href="{{url_for('add_cenario', id_rtf=id_rtf, pagina=pagina)}}">Nova Linha</a>
+        <a style="color: green; text-decoration:none !important; font-weight:700" href="{{url_for('new_line', id_rtf=id_rtf, pagina=pagina)}}"><i style="font-size: 20px" class="fa-solid fa-circle-plus"></i></a>
+    </div>
+    <br>
     <div class="container">
         <div class="row">
-            <div class="col-xs-12">
-                <a href="{{url_for('add_cenario', id_rtf=id_rtf, pagina=pagina)}}">Nova Linha</a>
-                <button class="btn"><a style="color: green; text-decoration:none !important; font-weight:700" href="{{url_for('new_line', id_rtf=id_rtf, pagina=pagina)}}"><img width="20px" src="{{url_for('static', filename='images/new_page.png')}}" /></a></button>
-            </div>
             <div class="col-xs-12">
                 <table class="table">
                     <thead>
@@ -47,7 +49,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <nav aria-label="..." style="display: inline;">
+                <nav aria-label="..." style="display: flex; justify-content: space-between; margin: 0 3rem;">
                     <ul class="pagination">
                         {% if pagina==1 %}
                             <li class="page-item disabled">
@@ -76,8 +78,9 @@
                         {% endif %}
                     </ul>
                     <div style="text-align: right;" >
-                        <a href="{{url_for('add_pagina', id_rtf=id_rtf, pagina_atual=pagina)}}">Nova Página</a>
-                        <a href="{{url_for('delete_pagina', id_rtf=id_rtf, pagina=pagina)}}">Remover Página</a>
+                        <a href="{{url_for('add_pagina', id_rtf=id_rtf, pagina_atual=pagina)}}"><i style="font-size: 35px; color: green" class="fa-solid fa-file-circle-plus"></i></i></a>
+                        &nbsp;&nbsp;
+                        <a href="{{url_for('delete_pagina', id_rtf=id_rtf, pagina=pagina)}}"><i style="font-size: 35px; color: red" class="fa-solid fa-file-circle-minus"></i></a></a>
                     </div>
                 </nav>
             </div>
