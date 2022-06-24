@@ -9,7 +9,8 @@
         {% endif %}
     {% endwith %}
     <div>
-        <h2 id="nome_pagina">{{nome_pagina}} <a href="{{ url_for('editar_nome_pagina', id_rtf=id_rtf, pagina=pagina) }}"><i style="font-size: 20px" class="fa-solid fa-pen-to-square"></i></h2>
+        <h2>{{ rtf_nome }}</h2>
+        <h3 id="nome_pagina">{{nome_pagina}} <a href="{{ url_for('editar_nome_pagina', id_rtf=id_rtf, pagina=pagina) }}"><i style="font-size: 20px" class="fa-solid fa-pen-to-square"></i></h3>
     </div>
     <br>
     <div class="col-xs-12">

@@ -17,6 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
 class users(db.Model):
     id = db.Column("id", db.Integer, primary_key=True, autoincrement=True)
     name = db.Column("name", db.String(100))
@@ -25,6 +26,7 @@ class users(db.Model):
     def __init__(self, name, email):
         self.name = name
         self.email = email
+
 
 class RTFs(db.Model):
     id = db.Column("id", db.Integer, primary_key=True, autoincrement=True)
@@ -59,6 +61,7 @@ class Pagina(db.Model):
         self.id_rtf = id_rtf
         self.numero = numero
         self.nome = nome
+
 
 class Cenarios(db.Model):
     id_cenario = db.Column("id_cenario", db.Integer, primary_key=True, autoincrement=True)
@@ -244,14 +247,23 @@ def logout():
     session.pop("email", None)
     return redirect(url_for("login"))
 
+
 @app.route("/viewUsers")
 def viewUsers():
     return render_template("viewUsers.html", values=users.query.all())
 
-@app.route("/viewRTF")
+
+@app.route("/viewRTF", methods=["POST", "GET"])
 def viewRTF():
-    rtfs = RTFs.query.all()
-    return render_template("viewRTFs.html", values=rtfs)
+
+    if request.method == "POST":
+        busca = request.form["busca"]
+        rtfs = RTFs.query.filter(RTFs.name.contains(busca))
+    else:
+        rtfs = RTFs.query.all()
+
+    return render_template("viewRTFs.html", values=rtfs)\
+
 
 @app.route("/viewCenarios/<int:id_rtf>/<int:pagina>")
 def viewCenarios(id_rtf, pagina):
@@ -261,8 +273,9 @@ def viewCenarios(id_rtf, pagina):
 
     try:
         qtd_pages = rtf.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
+        rtf_nome = rtf.name
         nome_pagina = pagina_obj.nome
-        return render_template("viewCenarios.html", values=cenarios, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
+        return render_template("viewCenarios.html", values=cenarios, rtf_nome=rtf_nome,id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
     except AttributeError:
         # se tentar abrir um RTF vazio, vai pedir para criar um cenário na pagina 1
 
@@ -279,6 +292,7 @@ def viewCenarios(id_rtf, pagina):
         flash('RTF está sem nenhum cenário! Adicione o primeiro ;D')
         return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=1)
 
+
 @app.route("/delete_user/<int:id>")
 def delete_user(id):
     found_user = users.query.get(id)
@@ -286,6 +300,7 @@ def delete_user(id):
     db.session.commit()
     flash('Usuário removido com sucesso!')
     return redirect(url_for("viewUsers"))
+
 
 @app.route("/delete_rtf/<int:id>")
 def delete_rtf(id):
