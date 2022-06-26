@@ -312,6 +312,7 @@ def delete_rtf(id):
 
 @app.route("/delete_cenario/<int:id_rtf>/<int:pagina>/<int:linha>")
 def delete_cenario(id_rtf, pagina, linha):
+    print("entrando na funcao de delecao")
     cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
     db.session.delete(cenario)
     sucess = ajust_num_linhas(id_rtf, pagina)
