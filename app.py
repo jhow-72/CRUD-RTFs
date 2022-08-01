@@ -2,6 +2,7 @@ from flask import Flask, redirect, url_for, render_template, request, session, f
 from datetime import timedelta, datetime, date
 import sqlManager
 import modelsSGRTF as models
+import helpers
 
 
 app = Flask(__name__)
@@ -30,16 +31,15 @@ def add_rtf():
 
 @app.route("/edit_rtf/<int:id>", methods=["GET", "POST"])
 def edit_rtf(id):
-    rtf = RTFs.query.get(id)
+    rtf = sqlManager.get_one_rtf(id)
 
     if request.method == "POST":
         rtf.name = request.form["name"]
         rtf.descricao = request.form["descricao"]
+        rtf.data_update = helpers.get_data()
+        rtf.data_update_formatada = helpers.get_data_formatada()
 
-        rtf.data_update = datetime.utcnow().date()
-        rtf.data_update_formatada = get_data_formatada()
-
-        db.session.commit()
+        sqlManager.edit_rtf(rtf)
         return redirect(url_for('viewRTF'))
 
     return render_template("editar.html", rtf=rtf)
@@ -127,7 +127,7 @@ def viewRTF():
 
     if request.method == "POST":
         busca = request.form["busca"]
-        rtfs = RTFs.query.filter(RTFs.name.contains(busca))
+        rtfs = sqlManager.viewRTF_name(busca)
     else:
         rtfs = sqlManager.viewRTF_all()
 
