@@ -24,6 +24,26 @@ INSERT INTO `CRUD_RTFs`.`Cenarios`(`linha`,`cenario`,`resultado_esperado`,`statu
 VALUES (1,'TBD','TBD',0,NULL,NULL,3,3);
 
 
+-- UPDATES
+-- edit_cenario(id_rtf, pagina, linha) 
+UPDATE CRUD_RTFs.Cenarios
+SET 
+WHERE
+
+UPDATE `CRUD_RTFs`.`Cenarios`
+SET
+`id_cenario` = <{id_cenario: }>,
+`linha` = <{linha: }>,
+`cenario` = <{cenario: TBD}>,
+`resultado_esperado` = <{resultado_esperado: TBD}>,
+`status` = <{status: }>,
+`massa_teste` = <{massa_teste: }>,
+`log_execucao` = <{log_execucao: }>,
+`id_rtf` = <{id_rtf: }>,
+`id_pagina` = <{id_pagina: }>
+WHERE `id_cenario` = <{expr}>;
+
+
 -- DELETE Cenario (essa query apaga todos os registros)
 DELETE FROM CRUD_RTFs.Cenarios WHERE id != 0;
 

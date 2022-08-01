@@ -1,72 +1,12 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from datetime import timedelta, datetime, date
+import sqlManager
+import modelsSGRTF as models
+
 
 app = Flask(__name__)
 app.secret_key = "jhow"
 app.permanent_session_lifetime = timedelta(minutes=5)
-
-def get_data_formatada():
-    data = date.today()
-    data = data.strftime('%d/%m/%Y')
-    return data
-
-# section sobre o database
-db = SQLAlchemy(app)
-
-class RTFs(db.Model):
-    id = db.Column("id", db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(100))
-    descricao = db.Column(db.String(500))
-    qtd_pages = db.Column(db.Integer)
-    cenarios = db.relationship('Cenarios', backref='rtfs')
-    paginas = db.relationship('Pagina', backref='rtfsP')
-
-    data_criacao = db.Column(db.Date, default=datetime.utcnow().date())
-    data_update = db.Column(db.Date, default=datetime.utcnow().date())
-    data_criacao_formatada = db.Column(db.String(10))
-    data_update_formatada = db.Column(db.String(10))
-
-    def __init__(self, name, descricao):
-        self.name = name
-        self.descricao = descricao
-        self.qtd_pages = 1
-        data = get_data_formatada()
-        self.data_criacao_formatada = data
-        self.data_update_formatada = data
-
-
-class Pagina(db.Model):
-    id_pagina = db.Column("id_pagina", db.Integer, primary_key=True, autoincrement=True)
-    id_rtf = db.Column(db.Integer, db.ForeignKey('rt_fs.id'))  # o db por alguma razão chamou RTFs de rt_fs
-    numero = db.Column(db.Integer)
-    nome = db.Column(db.String(30))
-    cenarios = db.relationship('Cenarios', backref='pagina_class')
-
-    def __init__(self, id_rtf, numero, nome):
-        self.id_rtf = id_rtf
-        self.numero = numero
-        self.nome = nome
-
-
-class Cenarios(db.Model):
-    id_cenario = db.Column("id_cenario", db.Integer, primary_key=True, autoincrement=True)
-    id_rtf = db.Column(db.Integer, db.ForeignKey('rt_fs.id'))  # o db por alguma razão chamou RTFs de rt_fs
-    id_pagina = db.Column(db.Integer, db.ForeignKey('pagina.id_pagina'))
-    pagina = db.Column(db.Integer)
-    linha = db.Column(db.Integer)
-    cenario = db.Column(db.String(250))
-    resultado_esperado = db.Column(db.String(250))
-    status = db.Column(db.Integer)
-    massa_teste = db.Column(db.String(250))
-    log_execucao = db.Column(db.String(10000))
-
-    def __init__(self, id_rtf, id_pagina, pagina, linha, cenario, resultado_esperado):
-        self.id_rtf = id_rtf
-        self.id_pagina = id_pagina
-        self.pagina = pagina
-        self.linha = linha
-        self.cenario = cenario
-        self.resultado_esperado = resultado_esperado
 
 
 ##########################
@@ -78,9 +18,11 @@ def index():
 @app.route("/add_rtf/", methods=["GET", "POST"])
 def add_rtf():
     if request.method == "POST":
-        rtf = RTFs(request.form["name"], request.form["descricao"])
-        db.session.add(rtf)
-        db.session.commit()
+        rtf = models.RTFs(name=request.form["name"], descricao=request.form["descricao"])
+        sqlManager.add_rtf(rtf)
+
+        # db.session.add(rtf)
+        # db.session.commit()
         flash('RTF adicionado com sucesso!')
         return redirect(url_for("viewRTF"))
     else:
@@ -156,9 +98,12 @@ def new_line(id_rtf, pagina):
     flash("Linha Adicionada...")
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
-@app.route("/edit_cenario/<int:id_rtf>/<int:pagina>/<int:linha>", methods=["GET", "POST"])
-def edit_cenario(id_rtf, pagina, linha):
-    cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
+@app.route("/edit_cenario/<int:id_cenario>/", methods=["GET", "POST"])
+def edit_cenario(id_cenario):
+    # criar query que traga as  3 informações
+    cenario = 'CRIANDO QUERY'
+    id_rtf = 'CRIAR QUERY'
+    pagina = 'CRIAR QUERY'
 
     if request.method == "POST":
         cenario.cenario = request.form["cenario"]
@@ -184,7 +129,7 @@ def viewRTF():
         busca = request.form["busca"]
         rtfs = RTFs.query.filter(RTFs.name.contains(busca))
     else:
-        rtfs = RTFs.query.all()
+        rtfs = sqlManager.viewRTF_all()
 
     return render_template("viewRTFs.html", values=rtfs)\
 
