@@ -8,34 +8,19 @@ db = sql.connect(
     passwd='07022109Ju+',
     database="CRUD_RTFs"
 )
-print('conexão estabelecida')
+print('conexão db estabelecida')
 
 cursor = db.cursor()
 
-# constroi um objeto RTF
-def constroi_rtf(rtf):
-    # seta propriedades
-    id, name, descricao, qtd_pages = rtf[0], rtf[1], rtf[2], rtf[3]
-    data_criacao, data_update, data_criacao_formatada, data_update_formatada = rtf[4], rtf[5], rtf[6], rtf[7]
-    rtf_temp = models.RTFs(id, name, descricao, qtd_pages, data_criacao, data_update, data_criacao_formatada, data_update_formatada)
 
-    return rtf_temp
-
-# cria uma lista de objetos RTF
-def cria_lista_rtfs(rtfs):
-    lista_obj_rtfs = []
-    for rtf in rtfs:
-        rtf_temp = constroi_rtf(rtf)
-        lista_obj_rtfs.append(rtf_temp)
-
-    return lista_obj_rtfs
+# Funcoes dos RTFs
 
 def viewRTF_all():
     comando = '''SELECT * FROM CRUD_RTFs.RTFs;'''
     cursor.execute(comando)
     rtfs = cursor.fetchall()
 
-    return cria_lista_rtfs(rtfs)
+    return helpers.cria_lista_rtfs(rtfs)
 
 
 def viewRTF_name(substring):
@@ -43,11 +28,11 @@ def viewRTF_name(substring):
     cursor.execute(comando)
     rtfs = cursor.fetchall()
 
-    return cria_lista_rtfs(rtfs)
+    return helpers.cria_lista_rtfs(rtfs)
 
 def add_rtf(rtf):
-    comando = f'''INSERT INTO `CRUD_RTFs`.`RTFs`(`name`, `descricao`, `qtd_pages`, `data_criacao`, `data_update`, `data_criacao_formatada`, `data_update_formatada`)
-                 VALUES ( '{rtf.name}', '{rtf.descricao}', {rtf.qtd_pages}, '{rtf.data_criacao}', '{rtf.data_update}', '{rtf.data_criacao_formatada}', '{rtf.data_update_formatada}');'''
+    comando = f'''INSERT INTO `CRUD_RTFs`.`RTFs`(`name`, `descricao`, `qtd_pages`, `data_criacao`, `data_update`, `data_criacao_formatada`, `data_update_formatada`, `squad`)
+                 VALUES ( '{rtf.name}', '{rtf.descricao}', {rtf.qtd_pages}, '{rtf.data_criacao}', '{rtf.data_update}', '{rtf.data_criacao_formatada}', '{rtf.data_update_formatada}', '{rtf.squad}');'''
     cursor.execute(comando)
     db.commit()
 
@@ -58,7 +43,7 @@ def get_one_rtf(id):
     cursor.execute(comando)
     rtf = cursor.fetchone()
 
-    return constroi_rtf(rtf)
+    return helpers.constroi_rtf(rtf)
 
 def edit_rtf(rtf):
     comando = f'''UPDATE CRUD_RTFs.RTFs
@@ -68,10 +53,28 @@ def edit_rtf(rtf):
     db.commit()
     return
 
-## TO-DO
+## TO-DO (após paginas e cenários estarem prontos)
 def delete_rtf():
     pass
 
+### Funcoes das paginas
+
+def busca_pagina(id_rtf, pagina):
+    comando = f"""SELECT *
+                 FROM CRUD_RTFs.Pagina
+                 WHERE id_rtf={id_rtf} and pagina={pagina};"""
+    cursor.execute(comando)
+    pagina_obj = cursor.fetchone()
+
+    return helpers.constroi_pagina(pagina_obj)
+
+### Funcoes dos cenarios
+def busca_cenarios_pagina(id_pagina):
+    comando = f"""SELECT * FROM CRUD_RTFs.Cenarios WHERE id_pagina={id_pagina};"""
+    cursor.execute(comando)
+    cenarios = cursor.fetchall()
+
+    return helpers.cria_lista_cenarios(cenarios)
 
 # cursor.execute('''SELECT *
 # FROM CRUD_RTFs.Cenarios

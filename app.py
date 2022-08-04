@@ -19,7 +19,7 @@ def index():
 @app.route("/add_rtf/", methods=["GET", "POST"])
 def add_rtf():
     if request.method == "POST":
-        rtf = models.RTFs(name=request.form["name"], descricao=request.form["descricao"])
+        rtf = models.RTFs(name=request.form["name"], descricao=request.form["descricao"], squad=request.form["squad"])
         sqlManager.add_rtf(rtf)
 
         # db.session.add(rtf)
@@ -136,15 +136,15 @@ def viewRTF():
 
 @app.route("/viewCenarios/<int:id_rtf>/<int:pagina>")
 def viewCenarios(id_rtf, pagina):
-    cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina)
-    rtf = RTFs.query.get(id_rtf)
-    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+    pagina_obj = sqlManager.busca_pagina(id_rtf, pagina)
+    cenarios = sqlManager.busca_cenarios_pagina(pagina_obj.id_pagina)
+    rtf = get_one_rtf(id_rtf)
 
     try:
         qtd_pages = rtf.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
         rtf_nome = rtf.name
         nome_pagina = pagina_obj.nome
-        return render_template("viewCenarios.html", values=cenarios, rtf_nome=rtf_nome,id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
+        return render_template("viewCenarios.html", values=cenarios, rtf_nome=rtf_nome, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
     except AttributeError:
         # se tentar abrir um RTF vazio, vai pedir para criar um cenário na pagina 1
 

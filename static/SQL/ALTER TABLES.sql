@@ -1,0 +1,2 @@
+ALTER TABLE CRUD_RTFs.RTFs
+ADD COLUMN squad varchar(8);

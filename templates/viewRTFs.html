@@ -18,6 +18,7 @@
                     <thead>
                         <th>Nome</th>
                         <th>Descrição</th>
+                        <th>Squad</th>
                         <th>Data Atualização</th>
                         <th>Ações</th>
                     </thead>
@@ -26,6 +27,7 @@
                             <tr>
                                 <td>{{ item.name }}</td>
                                 <td>{{ item.descricao }}</td>
+                                <td style="text-transform: capitalize;">{{ item.squad }}</td>
                                 <td>{{ item.data_update_formatada }}</td>
                                 <td>
                                     <a href="{{url_for('viewCenarios', id_rtf=item.id, pagina=1)}}">Acessar</a>
