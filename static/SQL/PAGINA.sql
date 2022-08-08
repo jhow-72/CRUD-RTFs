@@ -12,6 +12,10 @@ FROM CRUD_RTFs.Pagina
 WHERE id_rtf=3 and id_pagina=2;
 
 
+SELECT pagina
+FROM CRUD_RTFs.Pagina
+WHERE id_pagina=3;
+
 -- ADD NEW Pagina
 INSERT INTO `CRUD_RTFs`.`Pagina` (`numero`, `nome`, `id_rtf`)
 VALUES (1, 'paçoca', 3);

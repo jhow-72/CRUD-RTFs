@@ -24,14 +24,15 @@ class Pagina():
 
 
 class Cenarios():
-    def __init__(self, id_rtf, id_pagina, linha, cenario, resultado_esperado, status, massa_teste, log_execucao, id_cenario=None):
+    def __init__(self, id_rtf, id_pagina, linha, cenario, resultado_esperado, status=0, massa_teste='-', log_execucao='-', id_cenario=None, pagina=None):
         self.id_cenario = id_cenario
         self.id_rtf = id_rtf
         self.id_pagina = id_pagina
         self.linha = linha
         self.cenario = cenario
         self.resultado_esperado = resultado_esperado
-        self.status = 0
-        self.massa_teste = '-'
-        self.log_execucao = '-'
+        self.status = status
+        self.massa_teste = massa_teste
+        self.log_execucao = log_execucao
+        self.pagina = pagina
 

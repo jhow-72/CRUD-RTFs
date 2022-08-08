@@ -57,6 +57,14 @@ def edit_rtf(rtf):
 def delete_rtf():
     pass
 
+def update_qtd_pages_rtf(id_rtf, qtd_pages):
+    comando = f"""UPDATE CRUD_RTFs.RTFs
+                 SET qtd_pages = {qtd_pages}
+                 WHERE id={id_rtf};"""
+    cursor.execute(comando)
+    db.commit()
+    return
+
 ### Funcoes das paginas
 
 def busca_pagina(id_rtf, pagina):
@@ -68,9 +76,34 @@ def busca_pagina(id_rtf, pagina):
 
     return helpers.constroi_pagina(pagina_obj)
 
+def busca_numero_pagina_as_pagina(id_pagina):
+    comando = f"""SELECT pagina
+                  FROM CRUD_RTFs.Pagina
+                  WHERE id_pagina={id_pagina};"""
+    cursor.execute(comando)
+    resultado = cursor.fetchone()
+    pagina = resultado[0]
+    return pagina
+
+def add_pagina(id_rtf, nome, pagina):
+    comando = f"""INSERT INTO CRUD_RTFs.Pagina (id_rtf, nome, pagina)
+                  VALUES ({id_rtf}, '{nome}', {pagina});"""
+    cursor.execute(comando)
+    db.commit()
+    return
+
 ### Funcoes dos cenarios
 def busca_cenarios_pagina(id_pagina):
     comando = f"""SELECT * FROM CRUD_RTFs.Cenarios WHERE id_pagina={id_pagina};"""
+    cursor.execute(comando)
+    cenarios = cursor.fetchall()
+
+    pagina = busca_numero_pagina_as_pagina(id_pagina)
+
+    return helpers.cria_lista_cenarios(cenarios, pagina)
+
+def busca_cenarios_rtf(id_rtf):
+    comando = f"""SELECT * FROM CRUD_RTFs.Cenarios WHERE id_rtf={id_rtf};"""
     cursor.execute(comando)
     cenarios = cursor.fetchall()
 

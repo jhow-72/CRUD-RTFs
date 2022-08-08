@@ -28,7 +28,7 @@ def cria_lista_rtfs(rtfs):
     return lista_obj_rtfs
 
 
-def constroi_cenario(cenario_obj):
+def constroi_cenario(cenario_obj, pagina=None):
 
     id_cenario, linha, cenario, resultado_esperado = cenario_obj[0], cenario_obj[1], cenario_obj[2], cenario_obj[3]
     status = cenario_obj[4]
@@ -36,14 +36,14 @@ def constroi_cenario(cenario_obj):
     log_execucao = cenario_obj[6]
     id_rtf, id_pagina = cenario_obj[7], cenario_obj[8]
 
-    cenario_temp = models.Cenarios(id_cenario=id_cenario, linha=linha, cenario=cenario, resultado_esperado=resultado_esperado, status=status, massa_teste=massa_teste, log_execucao=log_execucao, id_rtf=id_rtf, id_pagina=id_pagina)
+    cenario_temp = models.Cenarios(id_cenario=id_cenario, linha=linha, cenario=cenario, resultado_esperado=resultado_esperado, status=status, massa_teste=massa_teste, log_execucao=log_execucao, id_rtf=id_rtf, id_pagina=id_pagina, pagina=pagina)
 
     return cenario_temp
 
-def cria_lista_cenarios(cenarios):
+def cria_lista_cenarios(cenarios, pagina=None):
     lista_obj_cenarios = []
     for cenario in cenarios:
-        cenario_temp = constroi_cenario(cenario)
+        cenario_temp = constroi_cenario(cenario, pagina)
         lista_obj_cenarios.append(cenario_temp)
 
     return lista_obj_cenarios

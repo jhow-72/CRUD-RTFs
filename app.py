@@ -98,7 +98,7 @@ def new_line(id_rtf, pagina):
     flash("Linha Adicionada...")
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
-@app.route("/edit_cenario/<int:id_cenario>/", methods=["GET", "POST"])
+@app.route("/edit_cenario/<int:id_rtf>/<int:pagina>/<int:linha>/", methods=["GET", "POST"])
 def edit_cenario(id_cenario):
     # criar query que traga as  3 informações
     cenario = 'CRIANDO QUERY'
@@ -108,6 +108,7 @@ def edit_cenario(id_cenario):
     if request.method == "POST":
         cenario.cenario = request.form["cenario"]
         cenario.resultado_esperado = request.form["resultado_esperado"]
+        cenario.status = request.form["status"]
         cenario.status = request.form["status"]
         cenario.massa_teste = request.form["massa_teste"]
         cenario.log_execucao = request.form["log_execucao"]
@@ -136,27 +137,32 @@ def viewRTF():
 
 @app.route("/viewCenarios/<int:id_rtf>/<int:pagina>")
 def viewCenarios(id_rtf, pagina):
-    pagina_obj = sqlManager.busca_pagina(id_rtf, pagina)
-    cenarios = sqlManager.busca_cenarios_pagina(pagina_obj.id_pagina)
-    rtf = get_one_rtf(id_rtf)
+    rtf = sqlManager.get_one_rtf(id_rtf)
 
     try:
+        pagina_obj = sqlManager.busca_pagina(id_rtf, pagina)
+    except TypeError: # pagina não existe... RTF vazio:
+        # se tentar abrir um RTF vazio, vai criar uma pagina nova
+        # adicionamente, irá forcar o qtd_pages = 1
+        pagina_obj = sqlManager.add_pagina(id_rtf, nome=f"Pagina {1}", pagina=1)
+        rtf.qtd_pages = 1
+        sqlManager.update_qtd_pages_rtf(id_rtf, qtd_pages=1)
+
+    try:
+        cenarios = sqlManager.busca_cenarios_pagina(pagina_obj.id_pagina)
+
+        if not cenarios:
+            lista_cenarios_RTF_inteiro = sqlManager.busca_cenarios_rtf(id_rtf)
+
+            if not lista_cenarios_RTF_inteiro:
+                raise AttributeError("Lista de Cenarios Vazia")
+
         qtd_pages = rtf.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
         rtf_nome = rtf.name
         nome_pagina = pagina_obj.nome
         return render_template("viewCenarios.html", values=cenarios, rtf_nome=rtf_nome, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
     except AttributeError:
-        # se tentar abrir um RTF vazio, vai pedir para criar um cenário na pagina 1
-
-        # adicionamente, irá forcar o qtd_pages = 1
-        rtf.qtd_pages = 1
-
-        # e criará a pagina 1 se ela não existir (buscar pagina 1 do rtf e verificar se ela tem nome ou n)
-        if pagina_obj is None or pagina_obj.nome is None:
-            pagina_obj = Pagina(id_rtf, 1, f"Pagina {1}")
-            db.session.add(pagina_obj)
-
-        db.session.commit()
+        # se tentar abrir um RTF sem cenarios, vai pedir para criar um cenário na pagina 1
 
         flash('RTF está sem nenhum cenário! Adicione o primeiro ;D')
         return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=1)
