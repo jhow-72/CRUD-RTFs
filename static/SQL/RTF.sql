@@ -6,6 +6,16 @@ SELECT *
 FROM CRUD_RTFs.RTFs
 WHERe NAME like "%F%";
 
+-- SELECT BY Id
+SELECT * 
+FROM CRUD_RTFs.RTFs
+WHERe RTFs.id=3;
+
+UPDATE CRUD_RTFs.RTFs
+SET qtd_pages = 3
+WHERE id=3;
+
+
 -- ADD NEW RTF
 INSERT INTO `CRUD_RTFs`.`RTFs`
 (`name`,

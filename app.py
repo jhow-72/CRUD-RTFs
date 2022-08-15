@@ -75,48 +75,40 @@ def add_cenario(id_rtf, pagina):
 
 @app.route("/new_line/<int:id_rtf>/<int:pagina>", methods=["GET", "POST"])
 def new_line(id_rtf, pagina):
-    id_pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
-    id_pagina = id_pagina.id_pagina
+    id_pagina = sqlManager.busca_id_1_pagina(id_rtf, pagina)
 
     # Precisa fazer uma query para buscar todas as linhas da pagina do rtfs.
     # se o array for > 0, pegar a linha mais alta e somar 1
     # se não, linha = 1 (primeiro RTF)
-    linha = 1
-    quantidade_linhas = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).count()
-    maior_linha = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).order_by(Cenarios.linha.desc()).first()
+    linha_nova = 1
+    quantidade_linhas = sqlManager.get_qtd_cenarios_pagina(id_rtf, pagina)
+    maior_linha = sqlManager.get_maior_linha_pagina(id_rtf, pagina)
+
     if quantidade_linhas > 0:
-        linha = maior_linha.linha+1
+        linha_nova = maior_linha+1
 
-    cenario = Cenarios(id_rtf, id_pagina, pagina, linha, "TBD", "TBD")
-    db.session.add(cenario)
-    db.session.commit()
+    cenario = models.Cenarios(id_rtf=id_rtf, id_pagina=id_pagina, pagina=pagina, linha=linha_nova, cenario="TBD", resultado_esperado="TBD")
+    sqlManager.new_line(cenario)
 
-    cenario.rtfs.data_update = datetime.utcnow().date()
-    cenario.rtfs.data_update_formatada = get_data_formatada()
-    db.session.commit()
+    sqlManager.update_date_rtf(id_rtf)
 
     flash("Linha Adicionada...")
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
 @app.route("/edit_cenario/<int:id_rtf>/<int:pagina>/<int:linha>/", methods=["GET", "POST"])
-def edit_cenario(id_cenario):
-    # criar query que traga as  3 informações
-    cenario = 'CRIANDO QUERY'
-    id_rtf = 'CRIAR QUERY'
-    pagina = 'CRIAR QUERY'
+def edit_cenario(id_rtf, pagina, linha):
+    cenario = sqlManager.busca_cenarios(id_rtf, pagina, linha)
 
     if request.method == "POST":
         cenario.cenario = request.form["cenario"]
         cenario.resultado_esperado = request.form["resultado_esperado"]
         cenario.status = request.form["status"]
-        cenario.status = request.form["status"]
         cenario.massa_teste = request.form["massa_teste"]
         cenario.log_execucao = request.form["log_execucao"]
 
-        cenario.rtfs.data_update = datetime.utcnow().date()
-        cenario.rtfs.data_update_formatada = get_data_formatada()
+        sqlManager.update_date_rtf(id_rtf)
 
-        db.session.commit()
+        sqlManager.update_cenario(cenario)
 
         return redirect(url_for('viewCenarios', id_rtf=id_rtf, pagina=pagina))
 
@@ -179,16 +171,17 @@ def delete_rtf(id):
 @app.route("/delete_cenario/<int:id_rtf>/<int:pagina>/<int:linha>")
 def delete_cenario(id_rtf, pagina, linha):
     print("entrando na funcao de delecao")
-    cenario = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina, linha=linha).first()
-    db.session.delete(cenario)
+    cenario = sqlManager.busca_cenarios(id_rtf, pagina, linha)
+    sqlManager.delete_cenario(cenario)
     sucess = ajust_num_linhas(id_rtf, pagina)
+
     if sucess:
-        db.session.commit()
+        sqlManager.commit()
         flash('Cenário removido com sucesso!')
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 
 def ajust_num_linhas(id_rtf, pagina):
-    cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).all()
+    cenarios = sqlManager.busca_cenarios_pagina_v2(id_rtf, pagina)
     for count, cenario in enumerate(cenarios):
         cenario.linha = count+1
     return True
@@ -297,12 +290,15 @@ def delete_lista_cenarios(id_rtf, pagina):
 
 @app.route("/editar_nome_pagina/<int:id_rtf>/<int:pagina>/", methods=["POST","GET"])
 def editar_nome_pagina(id_rtf, pagina):
-    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
+    pagina_obj = sqlManager.busca_pagina(id_rtf, pagina)
+
 
     if request.method == "POST":
-        novo_nome = request.form["novo_nome"]
-        pagina_obj.nome = novo_nome
-        db.session.commit()
+        pagina_obj.nome = request.form["novo_nome"]
+
+        sqlManager.update_date_rtf(id_rtf)
+        sqlManager.update_nome_pagina(pagina_obj)
+
         flash("Nome alterado com Sucesso!")
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
 

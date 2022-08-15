@@ -4,14 +4,26 @@ SELECT * FROM CRUD_RTFs.Cenarios;
 -- SELECT 1 linha em uma pagina específica
 SELECT * 
 FROM CRUD_RTFs.Cenarios
-WHERe linha=1 and id_pagina=3 and id_rtf=3;
+WHERE linha=1 and id_pagina=3 and id_rtf=11;
+
+-- SELECT 1 linha em uma pagina específica usando o número da pagina (pagina)
+SELECT * 
+FROM CRUD_RTFs.Cenarios
+	INNER JOIN CRUD_RTFs.Pagina AS Pg ON Pg.id_pagina = Cn.id_pagina
+    INNER JOIN CRUD_RTFs.RTFs AS RTF ON RTF.id = Cn.id_rtf
+WHERE linha=1 and Pg.pagina=1 and id_rtf=11;
+
+
+SELECT * 
+FROM CRUD_RTFs.Cenarios
+WHERE linha=1 and id_pagina=3 and id_rtf=11;
 
 
 SELECT *
 FROM CRUD_RTFs.Cenarios as Cn
 	INNER JOIN CRUD_RTFs.Pagina AS Pg ON Pg.id_pagina = Cn.id_pagina
     INNER JOIN CRUD_RTFs.RTFs AS RTF ON RTF.id = Cn.id_rtf
-WHERE Pg.pagina=1 AND RTF.id = 3;
+WHERE Pg.pagina=1 AND RTF.id=11;
 
 
 -- SELECT ALL BY PAGINA
@@ -36,20 +48,7 @@ VALUES (1,'TBD','TBD',0,NULL,NULL,3,3);
 -- edit_cenario(id_rtf, pagina, linha) 
 UPDATE CRUD_RTFs.Cenarios
 SET 
-WHERE
-
-UPDATE `CRUD_RTFs`.`Cenarios`
-SET
-`id_cenario` = <{id_cenario: }>,
-`linha` = <{linha: }>,
-`cenario` = <{cenario: TBD}>,
-`resultado_esperado` = <{resultado_esperado: TBD}>,
-`status` = <{status: }>,
-`massa_teste` = <{massa_teste: }>,
-`log_execucao` = <{log_execucao: }>,
-`id_rtf` = <{id_rtf: }>,
-`id_pagina` = <{id_pagina: }>
-WHERE `id_cenario` = <{expr}>;
+WHERE;
 
 
 -- DELETE Cenario (essa query apaga todos os registros)
