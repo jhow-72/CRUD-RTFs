@@ -13,8 +13,11 @@ where nome like "Pagina%";
 -- SELECT 1 pagina especifica de 1 rtf especifico
 SELECT *
 FROM CRUD_RTFs.Pagina
-WHERE id_rtf=3 and id_pagina=2;
+WHERE id_rtf=3 and id_pagina=1;
 
+SELECT *
+FROM CRUD_RTFs.Pagina
+WHERE id_rtf=3 and pagina=1;
 
 SELECT *
 FROM CRUD_RTFs.Pagina

@@ -145,9 +145,22 @@ def viewCenarios(id_rtf, pagina):
 
 @app.route("/delete_rtf/<int:id>")
 def delete_rtf(id):
-    found_rtf = RTFs.query.get(id)
-    db.session.delete(found_rtf)
-    db.session.commit()
+    rtf = sqlManager.get_one_rtf(id)
+
+    lista_de_paginas = sqlManager.busca_paginas_by_id_rtf(rtf.id)
+
+    lista_de_cenarios = []
+    for pagina in lista_de_paginas:
+        cenarios_pagina_atual = sqlManager.busca_cenarios_pagina(pagina.id_pagina)
+        for cenario in cenarios_pagina_atual:
+            lista_de_cenarios.append(cenario)
+
+    sqlManager.apaga_lista_cenarios(lista_de_cenarios)
+    sqlManager.apaga_lista_paginas(lista_de_paginas)
+    sqlManager.delete_rtf(rtf)
+
+    sqlManager.commit()
+
     flash('RTF removido com sucesso!')
     return redirect(url_for("viewRTF"))
 

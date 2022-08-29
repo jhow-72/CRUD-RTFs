@@ -27,6 +27,13 @@ def cria_lista_rtfs(rtfs):
 
     return lista_obj_rtfs
 
+def cria_lista_paginas(paginas):
+    lista_obj_paginas = []
+    for pagina in paginas:
+        pagina_temp = constroi_pagina(pagina)
+        lista_obj_paginas.append(pagina_temp)
+
+    return lista_obj_paginas
 
 def constroi_cenario(cenario_obj, pagina=None):
 

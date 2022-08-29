@@ -62,8 +62,11 @@ def edit_rtf(rtf):
     return
 
 ## TO-DO (após paginas e cenários estarem prontos)
-def delete_rtf():
-    pass
+def delete_rtf(rtf):
+    comando = f'''DELETE FROM CRUD_RTFs.RTFs WHERE id={rtf.id};'''
+    cursor.execute(comando)
+    cursor.reset()
+    return
 
 def update_qtd_pages_rtf(id_rtf, qtd_pages):
     comando = f"""UPDATE CRUD_RTFs.RTFs
@@ -89,7 +92,7 @@ def update_date_rtf(id_rtf):
     cursor.reset()
     return
 
-### Funcoes das paginas
+### Funcoes das paginas ##################################
 
 def busca_pagina(id_rtf, pagina):
     comando = f"""SELECT *
@@ -100,6 +103,17 @@ def busca_pagina(id_rtf, pagina):
 
     cursor.reset()
     return helpers.constroi_pagina(pagina_obj)
+
+# busca uma lista de paginas de um rtf especifico passado por parametro
+def busca_paginas_by_id_rtf(id_rtf):
+    comando = f"""SELECT * 
+                  FROM CRUD_RTFs.Pagina
+                 WHERE id_rtf={id_rtf};"""
+    cursor.execute(comando)
+    paginas_obj = cursor.fetchall()
+
+    cursor.reset()
+    return helpers.cria_lista_paginas(paginas_obj)
 
 def busca_numero_pagina_as_pagina(id_pagina):
     comando = f"""SELECT pagina
@@ -147,7 +161,23 @@ def update_nome_pagina(pagina_obj):
     cursor.reset()
     return
 
-### Funcoes dos cenarios
+def delete_pagina(pagina):
+    id_pagina = pagina.id_pagina
+
+    comando = f"""DELETE 
+                  FROM CRUD_RTFs.Pagina 
+                  WHERE id_pagina={id_pagina};"""
+
+    cursor.execute(comando)
+    cursor.reset()
+    return
+
+def apaga_lista_paginas(lista_de_paginas):
+    for pagina in lista_de_paginas:
+        delete_pagina(pagina)
+    return
+
+### Funcoes dos cenarios ################################################
 def busca_cenarios_pagina(id_pagina):
     comando = f"""SELECT * FROM CRUD_RTFs.Cenarios WHERE id_pagina={id_pagina};"""
     cursor.execute(comando)
@@ -242,6 +272,11 @@ def delete_cenario(cenario):
 
     cursor.execute(comando)
     cursor.reset()
+    return
+
+def apaga_lista_cenarios(lista_de_cenarios):
+    for cenario in lista_de_cenarios:
+        delete_cenario(cenario)
     return
 
 def update_linha_cenario(cenario):

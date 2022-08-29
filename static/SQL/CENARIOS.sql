@@ -16,14 +16,15 @@ WHERE linha=1 and Pg.pagina=1 and id_rtf=11;
 
 SELECT * 
 FROM CRUD_RTFs.Cenarios
-WHERE linha=1 and id_pagina=3 and id_rtf=11;
-
+	INNER JOIN CRUD_RTFs.Pagina AS Pg ON Pg.id_pagina = Cn.id_pagina
+    INNER JOIN CRUD_RTFs.RTFs AS RTF ON RTF.id = Cn.id_rtf
+WHERE Pg.pagina=1 and Cn.id_rtf=3;
 
 SELECT *
 FROM CRUD_RTFs.Cenarios as Cn
 	INNER JOIN CRUD_RTFs.Pagina AS Pg ON Pg.id_pagina = Cn.id_pagina
     INNER JOIN CRUD_RTFs.RTFs AS RTF ON RTF.id = Cn.id_rtf
-WHERE Pg.pagina=1 AND RTF.id=11;
+WHERE Pg.pagina=1 AND Cn.id_rtf=3;
 
 
 -- SELECT ALL BY PAGINA
