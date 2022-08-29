@@ -46,35 +46,16 @@ def edit_rtf(id):
 
 @app.route("/add_cenario/<int:id_rtf>/<int:pagina>", methods=["GET", "POST"])
 def add_cenario(id_rtf, pagina):
-    id_pagina = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
-    id_pagina = id_pagina.id_pagina
-
-    # Precisa fazer uma query para buscar todas as linhas da pagina do rtfs.
-    # se o array for > 0, pegar a linha mais alta e somar 1
-    # se não, linha = 1 (primeiro RTF)
-    linha = 1
-    quantidade_linhas = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).count()
-    maior_linha = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina).order_by(Cenarios.linha.desc()).first()
-    if quantidade_linhas > 0:
-        linha = maior_linha.linha+1
+    pagina_obj = sqlManager.busca_pagina(id_rtf, pagina)
 
     if request.method == "POST":
-        cenario = Cenarios(id_rtf, id_pagina, pagina, linha, request.form["cenario"], request.form["resultado_esperado"])
-        db.session.add(cenario)
-        db.session.commit()
-
-        cenario.rtfs.data_update = datetime.utcnow().date()
-        cenario.rtfs.data_update_formatada = get_data_formatada()
-        db.session.commit()
-
-        flash('Cenário adicionado com sucesso!')
-        return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
+        return new_line(id_rtf, pagina, cenario=request.form["cenario"], resultado_esperado=request.form["resultado_esperado"])
     else:
         return render_template("adicionar_cenario.html", id_rtf=id_rtf, pagina=pagina)
 
 
 @app.route("/new_line/<int:id_rtf>/<int:pagina>", methods=["GET", "POST"])
-def new_line(id_rtf, pagina):
+def new_line(id_rtf, pagina, cenario="TBD", resultado_esperado="TBD"):
     id_pagina = sqlManager.busca_id_1_pagina(id_rtf, pagina)
 
     # Precisa fazer uma query para buscar todas as linhas da pagina do rtfs.
@@ -87,8 +68,8 @@ def new_line(id_rtf, pagina):
     if quantidade_linhas > 0:
         linha_nova = maior_linha+1
 
-    cenario = models.Cenarios(id_rtf=id_rtf, id_pagina=id_pagina, pagina=pagina, linha=linha_nova, cenario="TBD", resultado_esperado="TBD")
-    sqlManager.new_line(cenario)
+    cenario_obj = models.Cenarios(id_rtf=id_rtf, id_pagina=id_pagina, pagina=pagina, linha=linha_nova, cenario=cenario, resultado_esperado=resultado_esperado)
+    sqlManager.new_line(cenario_obj)
 
     sqlManager.update_date_rtf(id_rtf)
 
@@ -136,6 +117,7 @@ def viewCenarios(id_rtf, pagina):
     except TypeError: # pagina não existe... RTF vazio:
         # se tentar abrir um RTF vazio, vai criar uma pagina nova
         # adicionamente, irá forcar o qtd_pages = 1
+        print("entrou no typeError")
         pagina_obj = sqlManager.add_pagina(id_rtf, nome=f"Pagina {1}", pagina=1)
         rtf.qtd_pages = 1
         sqlManager.update_qtd_pages_rtf(id_rtf, qtd_pages=1)
@@ -150,6 +132,7 @@ def viewCenarios(id_rtf, pagina):
                 raise AttributeError("Lista de Cenarios Vazia")
 
         qtd_pages = rtf.qtd_pages  # tenta pegar a qtd_paginas, se n conseguir, o array está vazio
+        print(qtd_pages)
         rtf_nome = rtf.name
         nome_pagina = pagina_obj.nome
         return render_template("viewCenarios.html", values=cenarios, rtf_nome=rtf_nome, id_rtf=id_rtf, pagina=pagina, qtd_pages=qtd_pages, nome_pagina=nome_pagina)
@@ -184,6 +167,7 @@ def ajust_num_linhas(id_rtf, pagina):
     cenarios = sqlManager.busca_cenarios_pagina_v2(id_rtf, pagina)
     for count, cenario in enumerate(cenarios):
         cenario.linha = count+1
+        sqlManager.update_linha_cenario(cenario)
     return True
 
 # na criação da pagina acontece algumas coisas importantes

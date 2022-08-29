@@ -244,6 +244,15 @@ def delete_cenario(cenario):
     cursor.reset()
     return
 
+def update_linha_cenario(cenario):
+
+    comando = f"""UPDATE CRUD_RTFs.Cenarios
+                      SET linha='{cenario.linha}'
+                      WHERE id_cenario={cenario.id_cenario};"""
+    cursor.execute(comando)
+    cursor.reset()
+    return
+
 # cursor.execute('''SELECT *
 # FROM CRUD_RTFs.Cenarios
 # WHERe linha=1 and id_pagina=3 and id_rtf=3;''')

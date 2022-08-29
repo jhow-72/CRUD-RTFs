@@ -4,7 +4,11 @@ SELECT * FROM CRUD_RTFs.Pagina;
 -- SELECT ALL PAGES FROM A RTF
 SELECT * 
 FROM CRUD_RTFs.Pagina
-WHERE id_rtf = 2;
+WHERE id_rtf = 3;
+
+DELETE
+FROM CRUD_RTFs.Pagina
+where nome like "Pagina%";
 
 -- SELECT 1 pagina especifica de 1 rtf especifico
 SELECT *
