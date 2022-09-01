@@ -73,7 +73,6 @@ def update_qtd_pages_rtf(id_rtf, qtd_pages):
                  SET qtd_pages = {qtd_pages}
                  WHERE id={id_rtf};"""
     cursor.execute(comando)
-    db.commit()
 
     cursor.reset()
     return
@@ -142,6 +141,15 @@ def update_numero_pagina(id_rtf, pagina_atual, pagina_nova):
                   WHERE id_rtf={id_rtf} and pagina={pagina_atual};"""
     cursor.execute(comando)
     db.commit()
+
+    cursor.reset()
+    return
+
+def update_numero_pagina_v2(pagina_obj):
+    comando = f"""UPDATE CRUD_RTFs.Pagina
+                  SET pagina={pagina_obj.pagina}
+                  WHERE id_pagina={pagina_obj.id_pagina};"""
+    cursor.execute(comando)
 
     cursor.reset()
     return
@@ -283,6 +291,15 @@ def update_linha_cenario(cenario):
 
     comando = f"""UPDATE CRUD_RTFs.Cenarios
                       SET linha='{cenario.linha}'
+                      WHERE id_cenario={cenario.id_cenario};"""
+    cursor.execute(comando)
+    cursor.reset()
+    return
+
+def update_pagina_cenario(cenario):
+
+    comando = f"""UPDATE CRUD_RTFs.Cenarios
+                      SET linha='{cenario.pagina}'
                       WHERE id_cenario={cenario.id_cenario};"""
     cursor.execute(comando)
     cursor.reset()

@@ -121,6 +121,7 @@ def viewCenarios(id_rtf, pagina):
         pagina_obj = sqlManager.add_pagina(id_rtf, nome=f"Pagina {1}", pagina=1)
         rtf.qtd_pages = 1
         sqlManager.update_qtd_pages_rtf(id_rtf, qtd_pages=1)
+        sqlManager.commit()
 
     try:
         cenarios = sqlManager.busca_cenarios_pagina(pagina_obj.id_pagina)
@@ -208,14 +209,16 @@ def add_pagina(id_rtf, pagina_atual):
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina_nova))
 
 def organiza_paginas(id_rtf, pagina_atual, modo):
-    cenarios = Cenarios.query.filter_by(id_rtf=id_rtf, pagina=pagina_atual).all()
-    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina_atual).first()
-    rtf = RTFs.query.get(id_rtf)
+    rtf = sqlManager.get_one_rtf(id_rtf)
+
+    # condicao de parada
+    if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas
+        return
+
+    cenarios = sqlManager.busca_cenarios_pagina_v2(id_rtf, pagina_atual)
+    pagina_obj = sqlManager.busca_pagina(id_rtf, pagina_atual)
 
     if modo.__eq__("add"):
-        # condicao de parada
-        if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas
-            return
 
         proxima_pagina = pagina_atual+1
         organiza_paginas(id_rtf, proxima_pagina, "add")
@@ -235,14 +238,12 @@ def organiza_paginas(id_rtf, pagina_atual, modo):
             pagina_obj.numero += 1
 
     if modo.__eq__("del"):
-        # condicao de parada
-        if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas a partir da que apaguei até a ultima
-            return
 
         for cenario in cenarios:
             cenario.pagina -= 1
+            sqlManager.update_pagina_cenario(cenario)
 
-        pagina_obj.numero -= 1
+        pagina_obj.pagina -= 1
         proxima_pagina = pagina_atual + 1
         organiza_paginas(id_rtf, proxima_pagina, "del")
 
@@ -254,25 +255,29 @@ def organiza_paginas(id_rtf, pagina_atual, modo):
 # subtrair o numero da pagina para pagina -= 1
 @app.route("/delete_pagina/<int:id_rtf>/<int:pagina>/")
 def delete_pagina(id_rtf, pagina):
-    rtf = RTFs.query.get(id_rtf)
+    rtf = sqlManager.get_one_rtf(id_rtf)
+    pagina_obj = sqlManager.busca_pagina(id_rtf, pagina)
+    lista_cenarios = sqlManager.busca_cenarios_pagina(pagina_obj.id_pagina)
+
     print(f"id_rtf: {id_rtf}; pagina: {pagina}")
-    pagina_obj = Pagina.query.filter_by(id_rtf=id_rtf, numero=pagina).first()
     print(pagina_obj)
 
     if rtf.qtd_pages == 1:
-        flash('Eae maluko, ta tirano? ta querendo arrumar problema pro c?')
+        flash('Não é permitido apagar a única página do RTF')
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
     else:
-        delete_lista_cenarios(id_rtf, pagina)
+        sqlManager.apaga_lista_cenarios(lista_cenarios)
         organiza_paginas(id_rtf, pagina, "del")
         rtf.qtd_pages -= 1
-        db.session.delete(pagina_obj)
+        sqlManager.update_qtd_pages_rtf(id_rtf, rtf.qtd_pages)
+        sqlManager.delete_pagina(pagina_obj)
 
-    db.session.commit()
+    sqlManager.commit()
 
     flash('A pagina foi removida com sucesso')
-    ultima_pagina = rtf.qtd_pages+1  # pagina excluida era a ultima pagina do rtf
-    if pagina == ultima_pagina:
+
+    ultima_pagina = rtf.qtd_pages+1
+    if pagina == ultima_pagina:  # pagina excluida era a ultima pagina do rtf
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina-1))
 
     # se não for a ultima pagina, ele permanece na mesma url só q com os dados da pagina q estava na frente
