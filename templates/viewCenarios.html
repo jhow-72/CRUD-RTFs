@@ -42,6 +42,7 @@
                                     <td><textarea class="form-control z-depth-1" name="massa_teste" id="massa_teste" cols="18" rows="5">{{ item.massa_teste }}</textarea></td>
                                     <td><textarea class="form-control z-depth-1" name="log_execucao" id="log_execucao" cols="18" rows="5">{{ item.log_execucao }}</textarea></td>
                                     <td>
+                                        <button type="button" class="btn btn-block"><a style="color: blue; font-size:20px" href="#"><i class="fa-solid fas fa-save"></i></a></button>
                                         <button type="submit" class="btn btn-block" style="color: green; font-size:20px"><i class="fa-solid fa-pencil"></i></button>
                                         <button type="button" class="btn btn-block"><a style="color: red; font-size:20px" href="{{url_for('delete_cenario', id_rtf=item.id_rtf, pagina=item.pagina, linha=item.linha)}}"><i class="fa-solid fa-trash-can"></i></a></button>
                                     </td>
