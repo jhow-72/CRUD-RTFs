@@ -195,30 +195,37 @@ def ajust_num_linhas(id_rtf, pagina):
 # aí vamos poder brincar com recursão, vamos criar uma nova funcao para dar um help nisso
 @app.route("/add_pagina/<int:id_rtf>/<int:pagina_atual>/")
 def add_pagina(id_rtf, pagina_atual):
-    rtf = RTFs.query.get(id_rtf)
+    rtf = sqlManager.get_one_rtf(id_rtf)
     pagina_nova = pagina_atual + 1
-    pagina = Pagina(id_rtf, pagina_nova, f"Pagina {pagina_nova}")
-    db.session.add(pagina)
+    pagina_obj = models.Pagina(id_rtf=id_rtf, pagina=pagina_nova, nome=f"Pagina {pagina_nova}")
+
+    sqlManager.add_pagina(id_rtf=id_rtf, pagina=pagina_obj.pagina, nome=pagina_obj.nome)
+
     if rtf.qtd_pages > 1:
         rtf.qtd_pages += 1
+        sqlManager.update_qtd_pages_rtf(id_rtf, rtf.qtd_pages)
         # começa organizando da pagina nova, pois a ideia é deixar a atual no mesmo estado
         organiza_paginas(id_rtf, pagina_nova, "add")
     else:
         rtf.qtd_pages += 1
-    db.session.commit()
+        sqlManager.update_qtd_pages_rtf(id_rtf, rtf.qtd_pages)
+
+    print("vai entrar no commit")
+    sqlManager.commit()
+    print("passou pelo commit")
+
     return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina_nova))
 
 def organiza_paginas(id_rtf, pagina_atual, modo):
     rtf = sqlManager.get_one_rtf(id_rtf)
 
-    # condicao de parada
-    if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas
-        return
-
-    cenarios = sqlManager.busca_cenarios_pagina_v2(id_rtf, pagina_atual)
-    pagina_obj = sqlManager.busca_pagina(id_rtf, pagina_atual)
-
     if modo.__eq__("add"):
+        # condicao de parada das chamadas recursivas
+        if pagina_atual >= rtf.qtd_pages:  # preciso olhar todas as paginas
+            return
+
+        cenarios = sqlManager.busca_cenarios_pagina_v2(id_rtf, pagina_atual)
+        pagina_obj = sqlManager.busca_pagina(id_rtf, pagina_atual)
 
         proxima_pagina = pagina_atual+1
         organiza_paginas(id_rtf, proxima_pagina, "add")
@@ -226,6 +233,7 @@ def organiza_paginas(id_rtf, pagina_atual, modo):
         # passa os cenarios da pagina atual para a proxima pagina q está confirmadamente vazia
         for cenario in cenarios:
             cenario.pagina = proxima_pagina
+            sqlManager.update_pagina_cenario(cenario)
 
         # quando chegar aqui pela primeira vez o rtf já tem pagina_atual == qtd_paginas
         # porém o add no DB ainda n foi commitado
@@ -235,15 +243,24 @@ def organiza_paginas(id_rtf, pagina_atual, modo):
         # se pagina_nova = 2, mesmo q qtd_pages seja 7, não vai afetar aqui... espero que eu entenda isso no futuro...
         # mas agr faz sentido...
         if pagina_atual < rtf.qtd_pages:
-            pagina_obj.numero += 1
+            pagina_obj.pagina += 1
+            sqlManager.update_numero_pagina_v2(pagina_obj)
 
     if modo.__eq__("del"):
+        # condicao de parada
+        if pagina_atual > rtf.qtd_pages:  # preciso olhar todas as paginas a partir da que apaguei até a ultima
+            return
+
+        cenarios = sqlManager.busca_cenarios_pagina_v2(id_rtf, pagina_atual)
+        pagina_obj = sqlManager.busca_pagina(id_rtf, pagina_atual)
 
         for cenario in cenarios:
             cenario.pagina -= 1
             sqlManager.update_pagina_cenario(cenario)
 
         pagina_obj.pagina -= 1
+        sqlManager.update_numero_pagina_v2(pagina_obj)
+
         proxima_pagina = pagina_atual + 1
         organiza_paginas(id_rtf, proxima_pagina, "del")
 
@@ -267,9 +284,12 @@ def delete_pagina(id_rtf, pagina):
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina))
     else:
         sqlManager.apaga_lista_cenarios(lista_cenarios)
+
         organiza_paginas(id_rtf, pagina, "del")
+
         rtf.qtd_pages -= 1
         sqlManager.update_qtd_pages_rtf(id_rtf, rtf.qtd_pages)
+
         sqlManager.delete_pagina(pagina_obj)
 
     sqlManager.commit()
@@ -277,7 +297,7 @@ def delete_pagina(id_rtf, pagina):
     flash('A pagina foi removida com sucesso')
 
     ultima_pagina = rtf.qtd_pages+1
-    if pagina == ultima_pagina:  # pagina excluida era a ultima pagina do rtf
+    if pagina == ultima_pagina:  # quando a pagina excluida for a ultima pagina do rtf
         return redirect(url_for("viewCenarios", id_rtf=id_rtf, pagina=pagina-1))
 
     # se não for a ultima pagina, ele permanece na mesma url só q com os dados da pagina q estava na frente

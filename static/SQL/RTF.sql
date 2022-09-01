@@ -9,7 +9,11 @@ WHERe NAME like "%F%";
 -- SELECT BY Id
 SELECT * 
 FROM CRUD_RTFs.RTFs
-WHERe RTFs.id=3;
+WHERe RTFs.id=4;
+
+UPDATE CRUD_RTFs.RTFs
+SET data_update="2022-08-14", data_update_formatada="14/08/2022"
+WHERE id=3;
 
 UPDATE CRUD_RTFs.RTFs
 SET qtd_pages = 3

@@ -127,10 +127,10 @@ def busca_numero_pagina_as_pagina(id_pagina):
 
 # adiciona uma pagina no banco e retorna a mesma
 def add_pagina(id_rtf, nome, pagina):
+    print(f"id_rtf: {id_rtf};pagina: {pagina};nome: {nome}")
     comando = f"""INSERT INTO CRUD_RTFs.Pagina (id_rtf, nome, pagina)
                   VALUES ({id_rtf}, '{nome}', {pagina});"""
     cursor.execute(comando)
-    db.commit()
 
     cursor.reset()
     return busca_pagina(id_rtf, pagina)

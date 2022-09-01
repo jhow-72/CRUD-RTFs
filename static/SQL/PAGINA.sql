@@ -6,6 +6,10 @@ SELECT *
 FROM CRUD_RTFs.Pagina
 WHERE id_rtf = 3;
 
+SELECT *
+FROM CRUD_RTFs.Pagina
+where nome like "Pagina%";
+
 DELETE
 FROM CRUD_RTFs.Pagina
 where nome like "Pagina%";
@@ -55,7 +59,10 @@ SET SQL_SAFE_UPDATES = 0;
 DELETE FROM CRUD_RTFs.Pagina WHERE nome='Pagina 1';
 
 -- DELETE de uma PAGINA especifica de 1 RTF
-DELETE FROM CRUD_RTFs.Pagina WHERE id_rtf=3 and id_pagina=2
+DELETE FROM CRUD_RTFs.Pagina WHERE id_rtf=3 and id_pagina=2;
+
+
+DELETE FROM CRUD_RTFs.Pagina;
 
 -- Deleta a Table
 DROP TABLE CRUD_RTFs.Pagina;

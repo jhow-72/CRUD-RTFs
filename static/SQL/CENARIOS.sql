@@ -53,7 +53,7 @@ WHERE;
 
 
 -- DELETE Cenario (essa query apaga todos os registros)
-DELETE FROM CRUD_RTFs.Cenarios WHERE id != 0;
+DELETE FROM CRUD_RTFs.Cenarios WHERE id_cenario != 0;
 
 -- DELETE de um cenário especifico
 DELETE FROM CRUD_RTFs.Cenarios WHERE linha=1 and id_pagina=3 and id_rtf=3;
